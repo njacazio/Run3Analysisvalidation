@@ -195,6 +195,9 @@ def compare(filerun3, filerun1):
     hlength_NoCut = get(f, "hlength_NoCut", "filterEl-task/", "tofpidqa-task/")
     htime_NoCut = get(f, "htime_NoCut", "filterEl-task/", "tofpidqa-task/")
     hevtime_NoCut = get(f, "hevtime_NoCut", "filterEl-task/", "tofpidqa-task/")
+    hnsigmaPi_NoCut = get(f, "hnsigmaPi_NoCut", "filterEl-task/", "tofpidqa-task/")
+    hnsigmaKa_NoCut = get(f, "hnsigmaKa_NoCut", "filterEl-task/", "tofpidqa-task/")
+    hnsigmaPr_NoCut = get(f, "hnsigmaPr_NoCut", "filterEl-task/", "tofpidqa-task/")
     #
     hp_El = get(f, "hp_El", "filterEl-task/")
     hpt_El = get(f, "hpt_El", "filterEl-task/")
@@ -252,13 +255,35 @@ def compare(filerun3, filerun1):
         draw(hp_betasigma_El[1], "COLZ")
         nextpad()
         drawdiff(hp_betasigma_El, "COLZ")
+    #
+    if True:
+        makecanvas("hnsigma_NoCut", "nsigma").Divide(2, 3)
+        nextpad()
+        draw(hnsigmaPi_NoCut[0], "COLZ")
+        nextpad()
+        draw(hnsigmaPi_NoCut[1], "COLZ")
+        nextpad()
+        draw(hnsigmaKa_NoCut[0], "COLZ")
+        nextpad()
+        draw(hnsigmaKa_NoCut[1], "COLZ")
+        nextpad()
+        draw(hnsigmaPr_NoCut[0], "COLZ")
+        nextpad()
+        draw(hnsigmaPr_NoCut[1], "COLZ")
 
     gSystem.ProcessEvents()
     canvaslist[0].SaveAs("plots.pdf[")
     for i in canvaslist:
         i.SaveAs("plots.pdf")
     canvaslist[-1].SaveAs("plots.pdf]")
-    input()
+    # input()
 
 
-compare(argv[1], argv[2])
+if __name__ == "__main__":
+    pass
+    RUN3FILE = "AnalysisResults.root"
+    RUN1FILE = "PidSpectra.root"
+    if len(argv) > 2:
+        RUN3FILE = argv[1]
+        RUN1FILE = argv[2]
+    compare(RUN3FILE, RUN1FILE)
