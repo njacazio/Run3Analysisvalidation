@@ -24,6 +24,9 @@
 #include "PID/TPCReso.h"
 #include "PID/PIDTPC.h"
 
+// Run3 includes
+#include "convertAO2D.C"
+
 using namespace o2::pid;
 
 Bool_t ComputeTPCPID(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
