@@ -30,8 +30,7 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   Printf("Reading TTree with %lli events", chain->GetEntries());
   esd->ReadFromTree(chain);
 
-  TList* lh = new TList();
-  lh->SetOwner();
+  TList* lh = MakeList("tpcqa-task");
 
 #define BIN_AXIS 1000, 0, 5, 1000, 0, 1000
 

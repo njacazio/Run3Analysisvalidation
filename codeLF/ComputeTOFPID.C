@@ -27,32 +27,52 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
   Printf("Reading TTree with %lli events", chain->GetEntries());
   esd->ReadFromTree(chain);
 
-  TList* lh = new TList();
-  lh->SetOwner();
-
-  // Standard pT distributions
-  DOTH1F(hp_NoCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
-  DOTH1F(hp_TrkCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
-  DOTH1F(hp_TOFCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
-  // Standard TOF distributions
-  DOTH1F(hlength_NoCut, ";Track Length (cm);Tracks", 100, 0, 1000);
-  DOTH1F(htime_NoCut, ";TOF Time (ns);Tracks", 1000, 0, 600);
-  DOTH1F(hevtime_NoCut, ";Event time (ns);Tracks", 100, -2, 2);
-  DOTH2F(hnsigmaPi_NoCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 5, 100, -10, 10);
-  DOTH2F(hnsigmaKa_NoCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 5, 100, -10, 10);
-  DOTH2F(hnsigmaPr_NoCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 5, 100, -10, 10);
-  // Distributions with PID
-  DOTH1F(hp_El, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
-  DOTH1F(hpt_El, ";#it{p}_{T} (GeV/#it{c});Tracks", 100, 0, 20);
-  //
+  TList* lh = nullptr;
+  lh = MakeList("tofqa-task");
+  DOTH1F(hevtime, ";Event time (ns);Tracks", 100, -2, 2);
+  DOTH1F(hp, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
+  DOTH1F(hlength, ";Track Length (cm);Tracks", 100, 0, 1000);
+  DOTH1F(htime, ";TOF Time (ns);Tracks", 1000, 0, 600);
+  DOTH2F(hp_beta, ";#it{p} (GeV/#it{c});TOF #beta;Tracks", 100, 0, 20, 100, 0, 2);
+#define TIT(part) Form(";#it{p} (GeV/#it{c});(t-t_{evt}-t_{exp %s});Tracks", part)
+  lh = MakeList("tofexptime-task");
+  DOTH2F(htimediffEl, TIT("e"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffMu, TIT("#mu"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffPi, TIT("#pi"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffKa, TIT("K"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffPr, TIT("p"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffDe, TIT("d"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffTr, TIT("t"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffHe, TIT("^{3}He"), 100, 0, 5, 100, -1000, 1000);
+  DOTH2F(htimediffAl, TIT("#alpha"), 100, 0, 5, 100, -1000, 1000);
+#define TIT(part) Form(";#it{p} (GeV/#it{c});(t-t_{evt}-t_{exp %s})/N_{sigma %s};Tracks", part, part)
+  lh = MakeList("tofnsigma-task");
+  DOTH2F(hnsigmaEl, TIT("e"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaMu, TIT("#mu"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaPi, TIT("#pi"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaKa, TIT("K"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaPr, TIT("p"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaDe, TIT("d"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaTr, TIT("t"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaHe, TIT("^{3}He"), 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaAl, TIT("#alpha"), 100, 0, 5, 100, -10, 10);
+#define TIT ";#it{p}_{T} (GeV/#it{c});Tracks"
+  lh = MakeList("tofspectra-task");
+  DOTH1F(hpt_El, TIT, 100, 0, 20);
+  DOTH1F(hpt_Pi, TIT, 100, 0, 20);
+  DOTH1F(hpt_Ka, TIT, 100, 0, 20);
+  DOTH1F(hpt_Pr, TIT, 100, 0, 20);
+#define TIT ";#it{p} (GeV/#it{c});Tracks"
+  DOTH1F(hp_El, TIT, 100, 0, 20);
+  DOTH1F(hp_Pi, TIT, 100, 0, 20);
+  DOTH1F(hp_Ka, TIT, 100, 0, 20);
+  DOTH1F(hp_Pr, TIT, 100, 0, 20);
+#undef TIT
   DOTH1F(hlength_El, ";Track Length (cm);Tracks", 100, 0, 1000);
   DOTH1F(htime_El, ";TOF Time (ns);Tracks", 1000, 0, 600);
-  DOTH1F(hevtime_El, ";Event time (ns);Tracks", 100, -2, 2);
-  //
-  DOTH2F(hp_beta, ";#it{p} (GeV/#it{c});TOF #beta;Tracks", 100, 0, 20, 100, 0, 2);
   DOTH2F(hp_beta_El, ";#it{p} (GeV/#it{c});#beta - #beta_{el};Tracks", 100, 0, 20, 100, -0.01, 0.01);
   DOTH2F(hp_betasigma_El, ";#it{p} (GeV/#it{c});(#beta - #beta_{el})/#sigma;Tracks", 100, 0, 20, 100, -5, 5);
-  //
+
   AliPIDResponse* pidr = new AliPIDResponse(kTRUE);
 
   for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
@@ -90,43 +110,75 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
 
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
+      const float Mom = trk->P();
+      const float pt = trk->Pt();
+      const float length = trk->GetIntegratedLength();
+      const float time = trk->GetTOFsignal();
 
-      float Mom = trk->P();
-      hp_NoCut->Fill(Mom);
-      hlength_NoCut->Fill(trk->GetIntegratedLength());
-      htime_NoCut->Fill(trk->GetTOFsignal() / 1000);
-      hevtime_NoCut->Fill(EVTIME / 1000);
+      // Speed of ligth in TOF units
+      const Float_t cspeed = 0.029979246f;
+      // PID hypothesis for the momentum extraction
+      const AliPID::EParticleType tof_pid = AliPID::kPion;
+      // Expected beta for such hypothesis
+      const Float_t exp_beta = (length / pidr->GetTOFResponse().GetExpectedSignal(trk, tof_pid) / cspeed);
+      const Float_t tofexpmom = AliPID::ParticleMass(tof_pid) * exp_beta * cspeed / TMath::Sqrt(1. - (exp_beta * exp_beta));
+      resp.UpdateTrack(Mom, tofexpmom, length, time);
 
-      if (!AcceptTrack(trk))
-        continue;
-      hp_TrkCut->Fill(Mom);
       if (!AcceptTrack(trk, kTRUE))
         continue;
-
-      hnsigmaPi_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kPion)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kPion));
-      hnsigmaKa_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kKaon)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kKaon));
-      hnsigmaPr_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kProton)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kProton));
+      hp->Fill(Mom);
+      hlength->Fill(length);
+      htime->Fill(time / 1000);
+      hevtime->Fill(EVTIME / 1000);
       //
-      hp_TOFCut->Fill(Mom);
-      if (!trk->GetESDEvent())
-        Printf("For track %i I cannot get ESD event from track!!!", itrk);
+      const AliTOFPIDResponse tofresp = pidr->GetTOFResponse();
+      htimediffEl->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kElectron)));
+      htimediffMu->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kMuon)));
+      htimediffPi->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kPion)));
+      htimediffKa->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kKaon)));
+      htimediffPr->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kProton)));
+      htimediffDe->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kDeuteron)));
+      htimediffTr->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kTriton)));
+      htimediffHe->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kHe3)));
+      htimediffAl->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kAlpha)));
+      //
+      hnsigmaEl->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kElectron)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kElectron));
+      hnsigmaMu->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kMuon)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kMuon));
+      hnsigmaPi->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kPion)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kPion));
+      hnsigmaKa->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kKaon)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kKaon));
+      hnsigmaPr->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kProton)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kProton));
+      hnsigmaDe->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kDeuteron)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kDeuteron));
+      hnsigmaTr->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kTriton)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kTriton));
+      hnsigmaHe->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kHe3)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kHe3));
+      hnsigmaAl->Fill(Mom, (time - tofresp.GetExpectedSignal(trk, AliPID::kAlpha)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kAlpha));
+      //
+
+      if (pidr->NumberOfSigmasTOF(trk, AliPID::kElectron) < 3) {
+        hp_El->Fill(Mom);
+        hpt_El->Fill(pt);
+      } else if (pidr->NumberOfSigmasTOF(trk, AliPID::kKaon) < 3) {
+        hp_Ka->Fill(Mom);
+        hpt_Ka->Fill(pt);
+      } else if (pidr->NumberOfSigmasTOF(trk, AliPID::kProton) < 3) {
+        hp_Pr->Fill(Mom);
+        hpt_Pr->Fill(pt);
+      }
+
       // Electron id via TOF beta
-      float BETA = resp.GetBeta();
-      float BETAERROR = resp.GetBetaExpectedSigma();
-      float EXPBETAEL = resp.GetExpectedBeta(o2::track::PID::Electron);
-      float EXPBETAELERROR = 0;
-      float betadiff = BETA - EXPBETAEL;
+      const float BETA = resp.GetBeta();
+      const float BETAERROR = resp.GetBetaExpectedSigma();
+      const float EXPBETAEL = resp.GetExpectedBeta(o2::track::PID::Electron);
+      const float EXPBETAELERROR = 0;
+      const float betadiff = BETA - EXPBETAEL;
       if (abs(betadiff / BETAERROR) < 1) {
-        hp_El->Fill(trk->P());
-        hpt_El->Fill(trk->Pt());
+        hp_El->Fill(Mom);
+        hpt_El->Fill(pt);
         //
-        hlength_El->Fill(trk->GetIntegratedLength());
-        htime_El->Fill(trk->GetTOFsignal() / 1000);
-        hevtime_El->Fill(EVTIME / 1000);
+        hlength_El->Fill(length);
+        htime_El->Fill(time / 1000);
         //
-        hp_beta->Fill(trk->Pt(), BETA);
-        hp_beta_El->Fill(trk->Pt(), betadiff);
-        hp_betasigma_El->Fill(trk->Pt(), betadiff / BETAERROR);
+        hp_beta_El->Fill(Mom, betadiff);
+        hp_betasigma_El->Fill(Mom, betadiff / BETAERROR);
       }
     }
     esd->ResetStdContent();
