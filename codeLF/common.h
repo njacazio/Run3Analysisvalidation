@@ -70,20 +70,24 @@ bool SetEvent(TChain* chain, int iEvent, AliESDEvent* esd)
   return kTRUE;
 }
 
-void SaveList(TList* l, TString fname)
+TList* llists = new TList();
+void Save(TString fname)
 {
-
   TFile fout(fname, "RECREATE");
-  const TString dir = l->GetName();
-  fout.mkdir(dir);
-  fout.cd(dir);
-  l->Write();
+  for (Int_t i = 0; i < llists->GetEntries(); i++) {
+    TList* l = (TList*)llists->At(i);
+    const TString dir = l->GetName();
+    fout.mkdir(dir);
+    fout.cd(dir);
+    l->Write();
+  }
   fout.Close();
 }
 
 TList* MakeList(TString name)
 {
   TList* l = new TList();
+  llists->Add(l);
   l->SetName(name);
   l->SetOwner();
   return l;

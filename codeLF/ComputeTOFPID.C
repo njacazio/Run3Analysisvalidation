@@ -186,6 +186,6 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
     }
     esd->ResetStdContent();
   }
-  SaveList(lh, "TOFPid.root");
+  Save("TOFPid.root");
   return true;
 }

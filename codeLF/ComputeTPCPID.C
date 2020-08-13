@@ -98,6 +98,6 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
     }
     esd->ResetStdContent();
   }
-  SaveList(lh, "TPCPid.root");
+  Save("TPCPid.root");
   return true;
 }
