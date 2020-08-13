@@ -198,7 +198,7 @@ def compare(filerun3, filerun1, avoid=""):
     makelegend(h[0])
 
     for i in h:
-        makecanvas(i[0].GetName(), i[0].GetName()).Divide(2, 3)
+        makecanvas(i[0].GetName(), i[0].GetName()).Divide(2, 1)
         drawtwo(i)
 
     gSystem.ProcessEvents()
@@ -206,7 +206,9 @@ def compare(filerun3, filerun1, avoid=""):
     for i in canvaslist:
         i.SaveAs("plots.pdf")
     canvaslist[-1].SaveAs("plots.pdf]")
-    # input()
+    if "-b" not in input():
+        print("Press enter to continue")
+        input()
 
 
 if __name__ == "__main__":
