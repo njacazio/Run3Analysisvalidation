@@ -71,43 +71,16 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   hexpAl->GetXaxis()->Set(nbins, binp);
 
   for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
-    chain->GetEvent(iEvent);
-    if (!esd) {
-      printf("Error: no ESD object found for event %d", iEvent);
+    if (!SetEvent(chain, iEvent, esd))
       return kFALSE;
-    }
-    esd->ConnectTracks(); // Deve essere sempre chiamato dopo aver letto
-                          // l'evento (non troverebbe l'ESDevent). Scrivo in
-                          // tutte le tracce l origine dell evento così poi da
-                          // arrivare ovunque(tipo al cluster e al tempo
-                          // quindi).
-    Printf("Event %i has %i tracks", iEvent, esd->GetNumberOfTracks());
-    if (!esd->AreTracksConnected() && esd->GetNumberOfTracks() > 0)
-      Printf("!!!Tracks are not connected, %i tracks are affected !!!!", esd->GetNumberOfTracks());
-
-    AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
-    if (applyeventcut == 1) {
-      Printf("Applying event selection");
-      if (!primvtx)
-        return kFALSE;
-      if (primvtx->IsFromVertexer3D() || primvtx->IsFromVertexerZ())
-        continue;
-      if (primvtx->GetNContributors() < 2)
-        continue;
-    }
-
+    //
+    if (applyeventcut && !AcceptVertex(esd))
+      continue;
+    //
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
-      Int_t status = trk->GetStatus();
-
-      bool sel = status & AliESDtrack::kITSrefit &&
-                 (trk->HasPointOnITSLayer(0) || trk->HasPointOnITSLayer(1)) &&
-                 trk->GetNcls(1) > 70;
-      if (!sel)
+      if (!AcceptTrack(trk))
         continue;
-
-      if (!trk->GetESDEvent())
-        Printf("For track %i I cannot get ESD event from track!!!", itrk);
       //
       const AliExternalTrackParam* intp = trk->GetTPCInnerParam();
       const float mom = (intp ? intp->GetP() : 0);

@@ -73,16 +73,8 @@ Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
     // pidr->SetTOFResponse(esd, AliPIDResponse::kT0_T0);
     pidr->SetTOFResponse(esd, AliPIDResponse::kTOF_T0);
 
-    AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
-    if (applyeventcut == 1) {
-      Printf("Applying event selection");
-      if (!primvtx)
-        return kFALSE;
-      if (primvtx->IsFromVertexer3D() || primvtx->IsFromVertexerZ())
-        continue;
-      if (primvtx->GetNContributors() < 2)
-        continue;
-    }
+    if (applyeventcut && AcceptVertex(esd))
+      continue;
 
     Float_t eventTime[10];
     Float_t eventTimeRes[10];
