@@ -8,7 +8,7 @@
 #include "AliPIDResponse.h"
 #include "AliTOFGeometry.h"
 #include "AliTOFPIDResponse.h"
-#include "TAlienCollection.h"
+//#include "TAlienCollection.h"
 #include "TFile.h"
 #include "TGrid.h"
 #include "TH1F.h"
