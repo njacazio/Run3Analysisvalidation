@@ -1,11 +1,29 @@
 R__ADD_INCLUDE_PATH($ALICE_ROOT)
 R__ADD_INCLUDE_PATH($ALICE_PHYSICS)
-#include <ANALYSIS/macros/train/AddESDHandler.C>
-#include <ANALYSIS/macros/train/AddMCHandler.C>
-#include <OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C>
-#include <OADB/macros/AddTaskPhysicsSelection.C>
-#include <ANALYSIS/macros/AddTaskPIDResponse.C>
-#include <RUN3/AddTaskAO2Dconverter.C>
+
+#include <fstream>
+
+// Root
+#include <TFile.h>
+#include <TChain.h>
+#include <TGridCollection.h>
+#include <TGrid.h>
+
+// AliRoot
+#include <AliESDInputHandler.h>
+#include <AliAnalysisManager.h>
+#include <AliMultiInputEventHandler.h>
+#include <AliMCEventHandler.h>
+#include <../ANALYSIS/macros/train/AddESDHandler.C>
+#include <../ANALYSIS/macros/train/AddMCHandler.C>
+#include <AliMultSelectionTask.h>
+#include <AliAnalysisTaskPIDResponse.h>
+#include <AliPhysicsSelectionTask.h>
+#include <AliPIDResponseInputHandler.h>
+#include <../OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C>
+#include <../OADB/macros/AddTaskPhysicsSelection.C>
+#include <../ANALYSIS/macros/AddTaskPIDResponse.C>
+#include <../RUN3/AddTaskAO2Dconverter.C>
 
 TChain* CreateChain(const char* xmlfile, const char* type = "ESD");
 TChain* CreateLocalChain(const char* txtfile, const char* type, int nfiles);
@@ -28,8 +46,8 @@ void convertAO2D(TString listoffiles, int ismc = 1, int nmaxevents = -1)
   ULong64_t nentries = chain->GetEntries();
   if (nmaxevents != -1)
     nentries = nmaxevents;
-  cout << nentries << " entries in the chain." << endl;
-  cout << nentries << " converted" << endl;
+  std::cout << nentries << " entries in the chain." << std::endl;
+  std::cout << nentries << " converted" << std::endl;
   AliAnalysisManager* mgr = new AliAnalysisManager("AOD converter");
   AliESDInputHandler* handler = AddESDHandler();
 
@@ -62,7 +80,7 @@ TChain* CreateLocalChain(const char* txtfile, const char* type, int nfiles)
   printf("    Getting chain of trees %s\n", treename.Data());
   printf("***************************************\n");
   // Open the file
-  ifstream in;
+  std::ifstream in;
   in.open(txtfile);
   Int_t count = 0;
   // Read the input list of files and add them to the chain
