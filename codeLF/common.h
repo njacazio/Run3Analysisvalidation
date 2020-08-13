@@ -18,6 +18,7 @@
 #include "TMath.h"
 #include "TRandom.h"
 #include "TTree.h"
+#include "TSystem.h"
 
 // Run3 includes
 #include "convertAO2D.C"
@@ -25,15 +26,13 @@
 bool AcceptVertex(AliESDEvent* esd)
 {
   AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
-  if (applyeventcut == 1) {
-    Printf("Applying event selection");
-    if (!primvtx)
-      return kFALSE;
-    if (primvtx->IsFromVertexer3D() || primvtx->IsFromVertexerZ())
-      return kFALSE;
-    if (primvtx->GetNContributors() < 2)
-      return kFALSE;
-  }
+  Printf("Applying event selection");
+  if (!primvtx)
+    return kFALSE;
+  if (primvtx->IsFromVertexer3D() || primvtx->IsFromVertexerZ())
+    return kFALSE;
+  if (primvtx->GetNContributors() < 2)
+    return kFALSE;
   return kTRUE;
 }
 
@@ -48,7 +47,7 @@ bool AcceptTrack(AliESDtrack* trk, bool requireTOF = kFALSE)
     sel = sel && (status & AliESDtrack::kTOFout) && (status & AliESDtrack::kTIME);
   }
   if (!trk->GetESDEvent())
-    Printf("For track %i I cannot get ESD event from track!!!", itrk);
+    Printf("Cannot get ESD event from track!!!");
 
   return sel;
 }

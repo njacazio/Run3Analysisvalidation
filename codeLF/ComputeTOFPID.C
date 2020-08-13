@@ -7,7 +7,7 @@
 using namespace o2::pid;
 
 Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
-                         bool applyeventcut = 0)
+                     bool applyeventcut = 0)
 {
   // Defining response
   auto resp = tof::Response();
@@ -72,9 +72,9 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
 
     for (Int_t i = 0; i < pidr->GetTOFResponse().GetNmomBins(); i++) {
       Float_t mom = (pidr->GetTOFResponse().GetMinMom(i) + pidr->GetTOFResponse().GetMaxMom(i)) / 2.f;
-      Printf("Mom [%.2f, %.2f] = %.2f", pidr->GetTOFResponse().GetMinMom(i), pidr->GetTOFResponse().GetMaxMom(i), mom);
+      // Printf("Mom [%.2f, %.2f] = %.2f", pidr->GetTOFResponse().GetMinMom(i), pidr->GetTOFResponse().GetMaxMom(i), mom);
       eventTime[i] = pidr->GetTOFResponse().GetStartTime(mom);
-      Printf("T0=%f", eventTime[i]);
+      // Printf("T0=%f", eventTime[i]);
       eventTimeRes[i] = pidr->GetTOFResponse().GetStartTimeRes(mom);
       eventTimeWeight[i] = 1. / (eventTimeRes[i] * eventTimeRes[i]);
     }
@@ -91,7 +91,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
 
-      float Mom = p(trk->Eta(), trk->GetSigned1Pt());
+      float Mom = trk->P();
       hp_NoCut->Fill(Mom);
       hlength_NoCut->Fill(trk->GetIntegratedLength());
       htime_NoCut->Fill(trk->GetTOFsignal() / 1000);
@@ -103,7 +103,6 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
       if (!AcceptTrack(trk, kTRUE))
         continue;
 
-
       hnsigmaPi_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kPion)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kPion));
       hnsigmaKa_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kKaon)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kKaon));
       hnsigmaPr_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kProton)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kProton));
@@ -112,9 +111,9 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
       if (!trk->GetESDEvent())
         Printf("For track %i I cannot get ESD event from track!!!", itrk);
       // Electron id via TOF beta
-      float BETA = beta(trk->GetIntegratedLength(), trk->GetTOFsignal(), EVTIME);
-      float BETAERROR = betaerror(trk->GetIntegratedLength(), trk->GetTOFsignal(), EVTIME);
-      float EXPBETAEL = expbeta(Mom, kElectronMass);
+      float BETA = resp.GetBeta();
+      float BETAERROR = resp.GetBetaExpectedSigma();
+      float EXPBETAEL = resp.GetExpectedBeta(o2::track::PID::Electron);
       float EXPBETAELERROR = 0;
       float betadiff = BETA - EXPBETAEL;
       if (abs(betadiff / BETAERROR) < 1) {
