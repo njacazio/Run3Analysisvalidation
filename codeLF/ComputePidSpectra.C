@@ -1,23 +1,5 @@
-#include "AliAnalysisManager.h"
-#include "AliESDEvent.h"
-#include "AliESDtrack.h"
-#include "AliGenEventHeader.h"
-#include "AliHeader.h"
-#include "AliInputEventHandler.h"
-#include "AliPID.h"
-#include "AliPIDResponse.h"
-#include "AliTOFGeometry.h"
-#include "AliTOFPIDResponse.h"
-// #include "TAlienCollection.h"
-#include "TFile.h"
-#include "TGrid.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TLeaf.h"
-#include "TList.h"
-#include "TMath.h"
-#include "TRandom.h"
-#include "TTree.h"
+#include "common.h"
+
 #include "PID/PIDTOF.h"
 
 using namespace o2::pid::tof;
@@ -175,11 +157,6 @@ Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root
     }
     esd->ResetStdContent();
   }
-
-  TFile* fout = new TFile(output.Data(), "recreate");
-  fout->mkdir("filterEl-task");
-  fout->cd("filterEl-task");
-  lh->Write();
-  fout->Close();
+  SaveList(lh, output, "filterEl-task");
   return true;
 }
