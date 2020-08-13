@@ -32,13 +32,6 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   TList* lh = new TList();
   lh->SetOwner();
 
-#define DOTH1F(OBJ, ...)                   \
-  TH1F* OBJ = new TH1F(#OBJ, __VA_ARGS__); \
-  lh->Add(OBJ);
-#define DOTH2F(OBJ, ...)                   \
-  TH2F* OBJ = new TH2F(#OBJ, __VA_ARGS__); \
-  lh->Add(OBJ);
-
 #define BIN_AXIS 1000, 0, 5, 1000, 0, 1000
 
   DOTH2F(htpcsignal, ";#it{p} (GeV/#it{c});TPC Signal;Tracks", BIN_AXIS);

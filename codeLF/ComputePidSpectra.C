@@ -27,13 +27,6 @@ Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root
   TList* lh = new TList();
   lh->SetOwner();
 
-#define DOTH1F(OBJ, ...)                   \
-  TH1F* OBJ = new TH1F(#OBJ, __VA_ARGS__); \
-  lh->Add(OBJ);
-#define DOTH2F(OBJ, ...)                   \
-  TH2F* OBJ = new TH2F(#OBJ, __VA_ARGS__); \
-  lh->Add(OBJ);
-
   // Standard pT distributions
   DOTH1F(hp_NoCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
   DOTH1F(hp_TrkCut, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
