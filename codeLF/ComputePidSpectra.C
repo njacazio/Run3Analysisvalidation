@@ -4,7 +4,7 @@
 #include "PID/TOFReso.h"
 #include "PID/PIDTOF.h"
 
-using namespace o2::pid::tof;
+using namespace o2::pid;
 
 Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
                          bool applyeventcut = 0)
@@ -56,19 +56,9 @@ Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
   AliPIDResponse* pidr = new AliPIDResponse(kTRUE);
 
   for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
-    chain->GetEvent(iEvent);
-    if (!esd) {
-      printf("Error: no ESD object found for event %d", iEvent);
+    if (!SetEvent(chain, iEvent, esd))
       return kFALSE;
-    }
-    esd->ConnectTracks(); // Deve essere sempre chiamato dopo aver letto
-                          // l'evento (non troverebbe l'ESDevent). Scrivo in
-                          // tutte le tracce l origine dell evento così poi da
-                          // arrivare ovunque(tipo al cluster e al tempo
-                          // quindi).
-    Printf("Event %i has %i tracks", iEvent, esd->GetNumberOfTracks());
-    if (!esd->AreTracksConnected() && esd->GetNumberOfTracks() > 0)
-      Printf("!!!Tracks are not connected, %i tracks are affected !!!!", esd->GetNumberOfTracks());
+
     // pidr->SetTOFResponse(esd, AliPIDResponse::kBest_T0);
     // pidr->SetTOFResponse(esd, AliPIDResponse::kT0_T0);
     pidr->SetTOFResponse(esd, AliPIDResponse::kTOF_T0);
@@ -100,23 +90,19 @@ Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
 
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
-      // trk->SetESDEvent(esd);
-      Int_t status = trk->GetStatus();
+
       float Mom = p(trk->Eta(), trk->GetSigned1Pt());
       hp_NoCut->Fill(Mom);
       hlength_NoCut->Fill(trk->GetIntegratedLength());
       htime_NoCut->Fill(trk->GetTOFsignal() / 1000);
       hevtime_NoCut->Fill(EVTIME / 1000);
 
-      bool sel = status & AliESDtrack::kITSrefit &&
-                 (trk->HasPointOnITSLayer(0) || trk->HasPointOnITSLayer(1)) &&
-                 trk->GetTPCNclsF() > 70;
-      if (!sel)
+      if (!AcceptTrack(trk))
         continue;
       hp_TrkCut->Fill(Mom);
-      sel = sel && (status & AliESDtrack::kTOFout) && (status & AliESDtrack::kTIME);
-      if (!sel)
+      if (!AcceptTrack(trk, kTRUE))
         continue;
+
 
       hnsigmaPi_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kPion)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kPion));
       hnsigmaKa_NoCut->Fill(Mom, (trk->GetTOFsignal() - pidr->GetTOFResponse().GetExpectedSignal(trk, AliPID::kKaon)) / pidr->GetTOFResponse().GetExpectedSigma(Mom, trk->GetTOFsignal(), AliPID::kKaon));
@@ -146,6 +132,6 @@ Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
     }
     esd->ResetStdContent();
   }
-  SaveList(lh, "PidSpectra.root", "filterEl-task");
+  SaveList(lh, "TOFPid.root", "filterEl-task");
   return true;
 }
