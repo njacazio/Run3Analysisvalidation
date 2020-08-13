@@ -29,7 +29,7 @@
 
 using namespace o2::pid;
 
-Bool_t ComputeTPCPID(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
+Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
                      TString output = "TPCPid.root",
                      bool applyeventcut = 0)
 {
@@ -42,20 +42,15 @@ Bool_t ComputeTPCPID(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
   resp.LoadParamFromFile("/tmp/Analysis/PID/TPC/BetheBloch/snapshot.root", "ccdb_object", DetectorResponse::kSignal);
   resp.LoadParamFromFile("/tmp/Analysis/PID/TPC/TPCReso/snapshot.root", "ccdb_object", DetectorResponse::kSigma);
 
-  TFile* esdFile = TFile::Open(esdfile.Data());
-  if (!esdFile || !esdFile->IsOpen()) {
-    printf("Error in opening ESD file");
+  TChain* chain = CreateLocalChain(esdfile, "ESD", 10);
+  Printf("Computing TPC Pid Spectra");
+  if (!chain) {
+    printf("Error: no ESD chain found");
     return kFALSE;
   }
-  Printf("Computing Pid Spectra");
   AliESDEvent* esd = new AliESDEvent;
-  TTree* tree = (TTree*)esdFile->Get("esdTree");
-  if (!tree) {
-    printf("Error: no ESD tree found");
-    return kFALSE;
-  }
-  Printf("Reading TTree with %lli events", tree->GetEntries());
-  esd->ReadFromTree(tree);
+  Printf("Reading TTree with %lli events", chain->GetEntries());
+  esd->ReadFromTree(chain);
 
   TList* lh = new TList();
   lh->SetOwner();
@@ -104,8 +99,8 @@ Bool_t ComputeTPCPID(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
   hexpHe->GetXaxis()->Set(nbins, binp);
   hexpAl->GetXaxis()->Set(nbins, binp);
 
-  for (Int_t iEvent = 0; iEvent < tree->GetEntries(); iEvent++) {
-    tree->GetEvent(iEvent);
+  for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) {
+    chain->GetEvent(iEvent);
     if (!esd) {
       printf("Error: no ESD object found for event %d", iEvent);
       return kFALSE;
