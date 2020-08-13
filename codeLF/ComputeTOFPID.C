@@ -6,7 +6,7 @@
 
 using namespace o2::pid;
 
-Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
+Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
                          bool applyeventcut = 0)
 {
   // Defining response
