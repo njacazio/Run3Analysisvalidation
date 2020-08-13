@@ -1,36 +1,13 @@
-#include "AliAnalysisManager.h"
-#include "AliESDEvent.h"
-#include "AliESDtrack.h"
-#include "AliGenEventHeader.h"
-#include "AliHeader.h"
-#include "AliInputEventHandler.h"
-#include "AliPID.h"
-#include "AliPIDResponse.h"
-#include "AliTOFGeometry.h"
-#include "AliTOFPIDResponse.h"
-#include "TFile.h"
-#include "TGrid.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TLeaf.h"
-#include "TList.h"
-#include "TMath.h"
-#include "TRandom.h"
-#include "TTree.h"
-#include "TSystem.h"
+#include "common.h"
 
 // O2 includes
 #include "PID/BetheBloch.h"
 #include "PID/TPCReso.h"
 #include "PID/PIDTPC.h"
 
-// Run3 includes
-#include "convertAO2D.C"
-
 using namespace o2::pid;
 
 Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
-                     TString output = "TPCPid.root",
                      bool applyeventcut = 0)
 {
   // Defining response
@@ -155,12 +132,6 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
     }
     esd->ResetStdContent();
   }
-
-  TFile* fout = new TFile(output.Data(), "recreate");
-  TString dirname = "TPCpidqa-expsignal-task";
-  fout->mkdir(dirname);
-  fout->cd(dirname);
-  lh->Write();
-  fout->Close();
+  SaveList(lh, "TPCPid.root", "TPCpidqa-expsignal-task");
   return true;
 }

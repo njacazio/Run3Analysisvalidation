@@ -1,11 +1,12 @@
 #include "common.h"
 
+// O2 includes
+#include "PID/TOFReso.h"
 #include "PID/PIDTOF.h"
 
 using namespace o2::pid::tof;
 
 Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
-                         TString output = "PidSpectra.root",
                          bool applyeventcut = 0)
 {
   TFile* esdFile = TFile::Open(esdfile.Data());
@@ -157,6 +158,6 @@ Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root
     }
     esd->ResetStdContent();
   }
-  SaveList(lh, output, "filterEl-task");
+  SaveList(lh, "PidSpectra.root", "filterEl-task");
   return true;
 }
