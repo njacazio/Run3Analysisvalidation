@@ -6,23 +6,26 @@
 
 using namespace o2::pid::tof;
 
-Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root",
+Bool_t ComputePidSpectra(TString esdfile = "esdLHC15o.txt",
                          bool applyeventcut = 0)
 {
-  TFile* esdFile = TFile::Open(esdfile.Data());
-  if (!esdFile || !esdFile->IsOpen()) {
-    printf("Error in opening ESD file");
+  // Defining response
+  auto resp = tof::Response();
+  // Downloading param from ccdb
+  gSystem->Exec("o2-ccdb-downloadccdbfile -p Analysis/PID/TOF/TOFReso -d /tmp/ -t -1");
+  // Loading param
+  resp.LoadParamFromFile("/tmp/Analysis/PID/TOF/TOFReso/snapshot.root", "ccdb_object", DetectorResponse::kSigma);
+
+  // Defining input
+  TChain* chain = CreateLocalChain(esdfile, "ESD", 10);
+  Printf("Computing TOF Pid Spectra");
+  if (!chain) {
+    printf("Error: no ESD chain found");
     return kFALSE;
   }
-  Printf("Computing Pid Spectra");
   AliESDEvent* esd = new AliESDEvent;
-  TTree* tree = (TTree*)esdFile->Get("esdTree");
-  if (!tree) {
-    printf("Error: no ESD tree found");
-    return kFALSE;
-  }
-  Printf("Reading TTree with %lli events", tree->GetEntries());
-  esd->ReadFromTree(tree);
+  Printf("Reading TTree with %lli events", chain->GetEntries());
+  esd->ReadFromTree(chain);
 
   TList* lh = new TList();
   lh->SetOwner();
@@ -51,8 +54,9 @@ Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root
   DOTH2F(hp_betasigma_El, ";#it{p} (GeV/#it{c});(#beta - #beta_{el})/#sigma;Tracks", 100, 0, 20, 100, -5, 5);
   //
   AliPIDResponse* pidr = new AliPIDResponse(kTRUE);
-  for (Int_t iEvent = 0; iEvent < tree->GetEntries(); iEvent++) {
-    tree->GetEvent(iEvent);
+
+  for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
+    chain->GetEvent(iEvent);
     if (!esd) {
       printf("Error: no ESD object found for event %d", iEvent);
       return kFALSE;
@@ -72,9 +76,8 @@ Bool_t ComputePidSpectra(TString esdfile = "../inputESD/AliESDs_20200201_v0.root
     AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
     if (applyeventcut == 1) {
       Printf("Applying event selection");
-      // if (!primvtx)
-      // return kFALSE;
-      // TString title = primvtx->GetTitle();
+      if (!primvtx)
+        return kFALSE;
       if (primvtx->IsFromVertexer3D() || primvtx->IsFromVertexerZ())
         continue;
       if (primvtx->GetNContributors() < 2)

@@ -19,6 +19,7 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   resp.LoadParamFromFile("/tmp/Analysis/PID/TPC/BetheBloch/snapshot.root", "ccdb_object", DetectorResponse::kSignal);
   resp.LoadParamFromFile("/tmp/Analysis/PID/TPC/TPCReso/snapshot.root", "ccdb_object", DetectorResponse::kSigma);
 
+  // Defining input
   TChain* chain = CreateLocalChain(esdfile, "ESD", 10);
   Printf("Computing TPC Pid Spectra");
   if (!chain) {
@@ -69,7 +70,7 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   hexpHe->GetXaxis()->Set(nbins, binp);
   hexpAl->GetXaxis()->Set(nbins, binp);
 
-  for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) {
+  for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
     chain->GetEvent(iEvent);
     if (!esd) {
       printf("Error: no ESD object found for event %d", iEvent);
