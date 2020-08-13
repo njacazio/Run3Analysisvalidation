@@ -14,26 +14,24 @@ from ROOT import (
 )
 
 
-def get(f, hn, d1, d3=None, V=True):
-    if "/" not in d1:
-        d1 = d1 + "/"
-    if not d3:
-        d3 = d1
-    if "/" not in d3:
-        d3 = d3 + "/"
+def get(f, hn, d="", V=True):
     if V:
         print("Getting", hn, "from", f[0].GetName(), "and", f[1].GetName())
-    h = [f[0].Get(d1 + hn), f[1].Get(d3 + hn)]
+    d += hn
+    h = [f[0].Get(d), f[1].Get(d)]
+    for i in [0, 1]:
+        if not h[i]:
+            f[i].ls()
+            print(hn, h)
+            raise ValueError(f"{hn} not found in {f[i].GetName()}")
     # Set style of histos
     h[0].SetTitle("Run2")
     h[0].SetLineColor(2)
     h[0].SetLineStyle(7)
     h[0].SetLineWidth(2)
     h[1].SetTitle("Run3")
-    for i, j in enumerate(h):
-        if not j:
-            f[i].ls()
-        j.SetDirectory(0)
+    h[0].SetDirectory(0)
+    h[1].SetDirectory(0)
     return h
 
 
@@ -44,8 +42,10 @@ def drawrange(x, y, xtit="", ytit=""):
     if not isinstance(x, list):
         if xtit == "":
             xtit = x.GetXaxis().GetTitle()
-        x = [x.GetXaxis().GetBinLowEdge(1), x.GetXaxis().GetBinUpEdge(x.GetNbinsX())]
-    ldrawn.append(gPad.DrawFrame(x[0], y[0], x[1], y[1], ";" + xtit + ";" + ytit))
+        x = [x.GetXaxis().GetBinLowEdge(
+            1), x.GetXaxis().GetBinUpEdge(x.GetNbinsX())]
+    ldrawn.append(gPad.DrawFrame(
+        x[0], y[0], x[1], y[1], ";" + xtit + ";" + ytit))
     ldrawn[-1].GetYaxis().CenterTitle()
 
 
@@ -178,98 +178,28 @@ def makecanvas(cname, ctit, sizex=1600, sizey=1600):
     return canvaslist[-1]
 
 
-def compare(filerun3, filerun1):
-    f = [TFile(filerun1, "READ"), TFile(filerun3, "READ")]
-    # gROOT.SetStyle("Plain")
+def compare(filerun3, filerun1, avoid=""):
+    f = [TFile(filerun3, "READ"), TFile(filerun1, "READ")]
     gStyle.SetOptStat(0)
     gStyle.SetOptTitle(0)
-    # gStyle.SetOptStat(0000)
-    # gStyle.SetPalette(0)
-    # gStyle.SetCanvasColor(0)
-    # gStyle.SetFrameFillColor(0)
+    dirlist = f[0].GetListOfKeys()
+    hlist = []
+    for i in dirlist:
+        if i.GetName() in avoid:
+            continue
+        print("Directory", i)
+        d = f[0].Get(i.GetName()).GetListOfKeys()
+        for j in d:
+            print(j)
+            hlist.append(f"{i.GetName()}/{j.GetName()}")
+    print(hlist)
+    h = [get(f, i) for i in hlist]
 
-    hp_NoCut = get(f, "hp_NoCut", "filterEl-task/", "p-task/")
-    hp_TrkCut = get(f, "hp_TrkCut", "filterEl-task/", "p-task/")
-    hp_TOFCut = get(f, "hp_TOFCut", "filterEl-task/", "p-task/")
-    #
-    hlength_NoCut = get(f, "hlength_NoCut", "filterEl-task/", "tofpidqa-task/")
-    htime_NoCut = get(f, "htime_NoCut", "filterEl-task/", "tofpidqa-task/")
-    hevtime_NoCut = get(f, "hevtime_NoCut", "filterEl-task/", "tofpidqa-task/")
-    hnsigmaPi_NoCut = get(f, "hnsigmaPi_NoCut", "filterEl-task/", "tofpidqa-task/")
-    hnsigmaKa_NoCut = get(f, "hnsigmaKa_NoCut", "filterEl-task/", "tofpidqa-task/")
-    hnsigmaPr_NoCut = get(f, "hnsigmaPr_NoCut", "filterEl-task/", "tofpidqa-task/")
-    #
-    hp_El = get(f, "hp_El", "filterEl-task/")
-    hpt_El = get(f, "hpt_El", "filterEl-task/")
-    hlength_El = get(f, "hlength_El", "filterEl-task/")
-    htime_El = get(f, "htime_El", "filterEl-task/")
-    hp_beta = get(f, "hp_beta", "filterEl-task/")
-    hp_beta_El = get(f, "hp_beta_El", "filterEl-task/")
-    hp_betasigma_El = get(f, "hp_betasigma_El", "filterEl-task/")
+    makelegend(h[0])
 
-    makelegend(hp_El)
-
-    if True:
-        makecanvas("cmom", "Momentum").Divide(2, 3)
-        drawtwo(hp_NoCut)
-        drawtwo(hp_TrkCut)
-        drawtwo(hp_TOFCut)
-    #
-    if True:
-        makecanvas("ctof", "TOFInfo").Divide(2, 3)
-        drawtwo(hlength_NoCut, logy=True)
-        drawtwo(htime_NoCut, logy=True)
-        drawtwo(hevtime_NoCut)
-    if True:
-        makecanvas("ctofEl", "TOFInfoEl").Divide(2, 3)
-        drawtwo(hlength_El)
-        drawtwo(htime_El)
-        # drawtwo(hevtime_El)
-    #
-    if True:
-        makecanvas("cbetaslice", "BetaSlice").Divide(2, 3)
-        drawtwo(hp_beta)
-        drawtwo(hp_beta_El)
-        drawtwo(hp_betasigma_El)
-    #
-    if True:
-        makecanvas("cmom_El", "Momentum_El").Divide(2, 2)
-        drawtwo(hp_El)
-        drawtwo(hpt_El)
-
-    #
-    if True:
-        makecanvas("hp_beta", "Beta").Divide(3, 2)
-        drawtwo(hp_beta, project=False, ratio=False)
-        nextpad()
-        drawdiff(hp_beta, "COLZ")
-        drawtwo(hp_beta_El, project=False, ratio=False)
-        nextpad()
-        drawdiff(hp_beta_El, "COLZ")
-    #
-    if True:
-        makecanvas("hp_betasigma_El", "BetaElSigma").Divide(3)
-        nextpad()
-        draw(hp_betasigma_El[0], "COLZ")
-        nextpad()
-        draw(hp_betasigma_El[1], "COLZ")
-        nextpad()
-        drawdiff(hp_betasigma_El, "COLZ")
-    #
-    if True:
-        makecanvas("hnsigma_NoCut", "nsigma").Divide(2, 3)
-        nextpad()
-        draw(hnsigmaPi_NoCut[0], "COLZ")
-        nextpad()
-        draw(hnsigmaPi_NoCut[1], "COLZ")
-        nextpad()
-        draw(hnsigmaKa_NoCut[0], "COLZ")
-        nextpad()
-        draw(hnsigmaKa_NoCut[1], "COLZ")
-        nextpad()
-        draw(hnsigmaPr_NoCut[0], "COLZ")
-        nextpad()
-        draw(hnsigmaPr_NoCut[1], "COLZ")
+    for i in h:
+        makecanvas(i[0].GetName(), i[0].GetName()).Divide(2, 3)
+        drawtwo(i)
 
     gSystem.ProcessEvents()
     canvaslist[0].SaveAs("plots.pdf[")
@@ -282,7 +212,7 @@ def compare(filerun3, filerun1):
 if __name__ == "__main__":
     pass
     RUN3FILE = "AnalysisResults.root"
-    RUN1FILE = "PidSpectra.root"
+    RUN1FILE = "TOFPid.root"
     if len(argv) > 2:
         RUN3FILE = argv[1]
         RUN1FILE = argv[2]
