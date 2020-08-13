@@ -16,7 +16,18 @@ void process(aod::Collision const& collision, soa::Join<aod::Tracks, aod::Tracks
 ```
 
 ## Task for PID spectra
+### TOF
 You can run the TOF spectra task with:
+
 ``` bash
 o2-analysis-spectra-tof --aod-file AO2D.root -b | o2-analysis-pid-tof -b
 ```
+as in `runTOFO2.sh`
+### TPC
+You can run the TPC spectra task with:
+
+``` bash
+o2-analysis-spectra-tpc --aod-file AO2D.root -b | o2-analysis-pid-tpc -b
+```
+as in `runTPCO2.sh`
+
