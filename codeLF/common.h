@@ -84,8 +84,8 @@ void SaveList(TList* l, TString fname)
 TList* MakeList(TString name)
 {
   TList* l = new TList();
-  l->SetName(name)
-    l->SetOwner();
+  l->SetName(name);
+  l->SetOwner();
   return l;
 }
 

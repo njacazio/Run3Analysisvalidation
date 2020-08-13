@@ -45,6 +45,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
   DOTH2F(htimediffTr, TIT("t"), 100, 0, 5, 100, -1000, 1000);
   DOTH2F(htimediffHe, TIT("^{3}He"), 100, 0, 5, 100, -1000, 1000);
   DOTH2F(htimediffAl, TIT("#alpha"), 100, 0, 5, 100, -1000, 1000);
+#undef TIT
 #define TIT(part) Form(";#it{p} (GeV/#it{c});(t-t_{evt}-t_{exp %s})/N_{sigma %s};Tracks", part, part)
   lh = MakeList("tofnsigma-task");
   DOTH2F(hnsigmaEl, TIT("e"), 100, 0, 5, 100, -10, 10);
@@ -56,12 +57,14 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
   DOTH2F(hnsigmaTr, TIT("t"), 100, 0, 5, 100, -10, 10);
   DOTH2F(hnsigmaHe, TIT("^{3}He"), 100, 0, 5, 100, -10, 10);
   DOTH2F(hnsigmaAl, TIT("#alpha"), 100, 0, 5, 100, -10, 10);
+#undef TIT
 #define TIT ";#it{p}_{T} (GeV/#it{c});Tracks"
   lh = MakeList("tofspectra-task");
   DOTH1F(hpt_El, TIT, 100, 0, 20);
   DOTH1F(hpt_Pi, TIT, 100, 0, 20);
   DOTH1F(hpt_Ka, TIT, 100, 0, 20);
   DOTH1F(hpt_Pr, TIT, 100, 0, 20);
+#undef TIT
 #define TIT ";#it{p} (GeV/#it{c});Tracks"
   DOTH1F(hp_El, TIT, 100, 0, 20);
   DOTH1F(hp_Pi, TIT, 100, 0, 20);
@@ -183,6 +186,6 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
     }
     esd->ResetStdContent();
   }
-  SaveList(lh, "TOFPid.root", "filterEl-task");
+  SaveList(lh, "TOFPid.root");
   return true;
 }
