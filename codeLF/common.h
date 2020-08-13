@@ -70,14 +70,23 @@ bool SetEvent(TChain* chain, int iEvent, AliESDEvent* esd)
   return kTRUE;
 }
 
-void SaveList(TList* l, TString fname, TString dir)
+void SaveList(TList* l, TString fname)
 {
 
   TFile fout(fname, "RECREATE");
+  const TString dir = l->GetName();
   fout.mkdir(dir);
   fout.cd(dir);
   l->Write();
   fout.Close();
+}
+
+TList* MakeList(TString name)
+{
+  TList* l = new TList();
+  l->SetName(name)
+    l->SetOwner();
+  return l;
 }
 
 #define DOTH1F(OBJ, ...)                   \
