@@ -26,7 +26,7 @@ R__ADD_INCLUDE_PATH($ALICE_PHYSICS)
 #include <../RUN3/AddTaskAO2Dconverter.C>
 
 TChain* CreateChain(const char* xmlfile, const char* type = "ESD");
-TChain* CreateLocalChain(const char* txtfile, const char* type, int nfiles);
+TChain* CreateLocalChain(const char* txtfile, TString type = "ESD", int nfiles = 100);
 
 void convertAO2D(TString listoffiles, int ismc = 1, int nmaxevents = -1)
 {
@@ -71,34 +71,35 @@ void convertAO2D(TString listoffiles, int ismc = 1, int nmaxevents = -1)
   mgr->StartAnalysis("localfile", chain, nentries, 0);
 }
 
-TChain* CreateLocalChain(const char* txtfile, const char* type, int nfiles)
+TChain* CreateLocalChain(const char* txtfile, TString type, int nfiles)
 {
-  TString treename = type;
-  treename.ToLower();
-  treename += "Tree";
-  printf("***************************************\n");
-  printf("    Getting chain of trees %s\n", treename.Data());
-  printf("***************************************\n");
+  type.ToLower();
+  type += "Tree";
+  Printf("***************************************");
+  Printf("    Getting chain of trees %s from %s", txtfile, type.Data());
+  Printf("    Limiting to %i files", nfiles);
+  Printf("***************************************");
   // Open the file
   std::ifstream in;
   in.open(txtfile);
   Int_t count = 0;
   // Read the input list of files and add them to the chain
   TString line;
-  TChain* chain = new TChain(treename);
+  TChain* chain = new TChain(type);
   while (in.good()) {
     in >> line;
     if (line.IsNull() || line.BeginsWith("#"))
       continue;
-    if (count++ == nfiles)
+    if (count++ == nfiles) {
+      Printf("Stopping chain at %i files", count);
       break;
-    TString esdFile(line);
-    TFile* file = TFile::Open(esdFile);
-    if (file && !file->IsZombie()) {
-      chain->Add(esdFile);
-      file->Close();
+    }
+    TFile f(line);
+    if (f.IsOpen() && !f.IsZombie()) {
+      chain->Add(line);
+      f.Close();
     } else {
-      Error("GetChainforTestMode", "Skipping un-openable file: %s", esdFile.Data());
+      Error("GetChainforTestMode", "Skipping un-openable file: %s", f.GetName());
     }
   }
   in.close();
