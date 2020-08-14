@@ -27,3 +27,19 @@ def get_obj(input_file, obj_name, path="", V=True):
     if "TH" in obj.ClassName():
         obj.SetDirectory(0)
     return obj
+
+
+def gettwo(run2, run3, hn, d="", V=True):
+    if V:
+        print("Getting", d, hn, "from", run2, "and", run3)
+    hr2 = get_obj(run2, hn, d)
+    hr3 = get_obj(run3, hn, d)
+    # Set style of histos
+    hr2.SetTitle("Run2")
+    hr2.SetName(hr2.GetName() + run2)
+    hr2.SetLineColor(2)
+    hr2.SetLineStyle(7)
+    hr2.SetLineWidth(2)
+    hr3.SetTitle("Run3")
+    hr3.SetName(hr3.GetName() + run3)
+    return hr2, hr3

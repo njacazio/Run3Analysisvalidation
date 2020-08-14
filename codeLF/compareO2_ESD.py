@@ -1,45 +1,25 @@
 #!/usr/bin/python3
 
-from sys import argv
-
 from ROOT import (
-    TCanvas,
     TFile,
-    TLatex,
-    TLegend,
-    TPaveText,
-    gPad,
+    gROOT,
     gStyle,
+    TLegend,
+    TCanvas,
+    gPad,
     gSystem,
+    TLatex,
+    TPaveText,
 )
-
-
-def get(f, hn, d="", V=True):
-    if V:
-        print("Getting", hn, "from", f[0].GetName(), "and", f[1].GetName())
-    d += hn
-    h = [f[0].Get(d), f[1].Get(d)]
-    for i in [0, 1]:
-        if not h[i]:
-            f[i].ls()
-            print(hn, h)
-            raise ValueError(f"{hn} not found in {f[i].GetName()}")
-    # Set style of histos
-    h[0].SetTitle("Run2")
-    h[0].SetLineColor(2)
-    h[0].SetLineStyle(7)
-    h[0].SetLineWidth(2)
-    h[1].SetTitle("Run3")
-    h[0].SetDirectory(0)
-    h[1].SetDirectory(0)
-    return h
+from sys import argv
+from utils import get_obj, gettwo
 
 
 ldrawn = []
 
 
 def drawrange(x, y, xtit="", ytit=""):
-    if not isinstance(x, list):
+    if type(x) != type([]):
         if xtit == "":
             xtit = x.GetXaxis().GetTitle()
         x = [x.GetXaxis().GetBinLowEdge(
@@ -52,12 +32,12 @@ def drawrange(x, y, xtit="", ytit=""):
 latexdrawn = []
 
 
-def draw(h, opt="", copy=False, labelize=True):
+def draw(h, opt="", copy=False, labelize=True, puttitle=False):
     hd = h
     if copy:
         print("Drawing", h, "as a copy")
         hd = h.DrawCopy(opt)
-        if isinstance(copy, str):
+        if type(copy) == type(""):
             hd.SetName(hd.GetName() + copy)
         else:
             hd.SetName(hd.GetName() + "copy")
@@ -65,7 +45,10 @@ def draw(h, opt="", copy=False, labelize=True):
     else:
         h.Draw(opt)
     if labelize and "same" not in opt:
-        latex = TLatex(0.2, 0.95, hd.GetName())
+        n = hd.GetName()
+        if puttitle:
+            n += f" {hd.GetTitle()}"
+        latex = TLatex(0.2, 0.95, n)
         latex.SetNDC()
         latex.Draw()
         latexdrawn.append(latex)
@@ -117,14 +100,20 @@ legends = []
 
 
 def makelegend(h):
-    leg = TLegend(0.7, 0.7, 0.9, 0.9)
+    l = TLegend(0.7, 0.7, 0.9, 0.9)
     for i in h:
-        leg.AddEntry(i, "", "f")
-    # leg.SetHeader("Legend","C"); // option "C" allows to center the header
-    legends.append(leg)
+        l.AddEntry(i, "", "f")
+    # l.SetHeader("Legend","C"); // option "C" allows to center the header
+    legends.append(l)
 
 
-def drawtwo(h, logx=False, logy=False, project=True, ratio=True, V=True):
+def drawtwo(h, logx=False, logy=False, project=False, ratio=True, diff=True, V=True):
+    th2mode = "TH2" in h[0].ClassName()
+    if th2mode:
+        makecanvas(h[0].GetName(), h[0].GetName(), nx=2, ny=2)
+    else:
+        makecanvas(h[0].GetName(), h[0].GetName(), nx=3, ny=1)
+
     def equals(h1, h2, Ck):
         cmd = ["h1." + Ck, "h2." + Ck]
         cmdR = [eval(cmd[0]), eval(cmd[1])]
@@ -132,81 +121,116 @@ def drawtwo(h, logx=False, logy=False, project=True, ratio=True, V=True):
         if not V:
             raise ValueError(h1, "differs from", h2, Ck, cmd, cmdR)
 
-    for i in "GetName GetNbinsX GetXaxis().GetTitle".split():
+    for i in "GetNbinsX GetXaxis().GetTitle GetYaxis().GetTitle".split():
         equals(h[0], h[1], i + "()")
     nextpad()
     if logy:
         gPad.SetLogy()
     if logx:
         gPad.SetLogx()
+    if th2mode:
+        gPad.SetLogz()
     hrun2 = h[0]
     hrun3 = h[1]
-    if project and "TH2" in h[0].ClassName():
+    if project and th2mode:
         hrun2 = h[0].ProjectionY("Y1_" + h[0].GetName())
         hrun3 = h[1].ProjectionY("Y2_" + h[1].GetName())
     if V:
         print("Drawing", h)
-    if "TH2" in hrun2.ClassName() and not project:
-        draw(hrun2, "COLZ")
+    if "TH2" in hrun2.ClassName():
+        draw(hrun2, "COLZ", puttitle=True)
         nextpad()
         if logy:
             gPad.SetLogy()
         if logx:
             gPad.SetLogx()
-        draw(hrun3, "COLZ")
+        if th2mode:
+            gPad.SetLogz()
+        draw(hrun3, "COLZ", puttitle=True)
     else:
         draw(hrun2)
         draw(hrun3, "same")
         drawcounts([hrun2, hrun3])
-    print("Entries of", hrun2.GetName(), hrun2.GetEntries(), "vs", hrun3.GetEntries())
+    print(
+        "Entries of", hrun2.GetName(), hrun2.GetEntries(), "vs", hrun3.GetEntries(),
+    )
     if "TH1" in h[0].ClassName():
         legends[-1].Draw()
+    opt = ""
+    if th2mode:
+        opt = "COLZ"
     if ratio:
         nextpad()
-        drawrange(hrun2, [0.5, 1.5], ytit="Run2/Run3")
-        hratio = draw(hrun2, "same", copy=True, labelize=False)
+        # drawrange(hrun2, [0.5, 1.5], ytit="Run2/Run3")
+        # hratio = draw(hrun2, opt + "same", copy=True, labelize=False)
+        hratio = draw(hrun2, opt, copy=True, labelize=False)
         hratio.SetTitle(hratio.GetTitle() + " Ratio")
+        if th2mode:
+            hratio.GetZaxis().SetTitle("Run2/Run3")
+        else:
+            hratio.GetYaxis().SetTitle("Run2/Run3")
         hratio.Divide(hrun3)
+        gPad.Update()
+    if diff:
+        nextpad()
+        hdiff = draw(hrun2, opt, copy=True, labelize=False)
+        hdiff.SetTitle(hdiff.GetTitle() + " Difference")
+        if th2mode:
+            hdiff.GetZaxis().SetTitle("Run2-Run3")
+        else:
+            hdiff.GetYaxis().SetTitle("Run2-Run3")
+        hdiff.Add(hrun3, -1)
         gPad.Update()
 
 
 canvaslist = []
 
 
-def makecanvas(cname, ctit, sizex=1600, sizey=1600):
-    canvaslist.append(TCanvas(cname, ctit, sizex, sizey))
-    return canvaslist[-1]
+def makecanvas(cname, ctit, sizex=1600, sizey=1600, nx=1, ny=1):
+    c = TCanvas(cname, ctit, sizex, sizey)
+    c.Divide(nx, ny)
+    if nx > 1:
+        for i in range(0, nx * ny):
+            c.cd(i+1)
+            gPad.SetLeftMargin(0.15)
+            gPad.SetRightMargin(0.15)
+    c.cd()
+    canvaslist.append(c)
+    return c
 
 
-def compare(filerun3, filerun1, avoid=""):
-    f = [TFile(filerun3, "READ"), TFile(filerun1, "READ")]
+def compare(filerun3, filerun2, avoid="tofspectra-task tofnsigma-task tofqa-task htimediffEl htimediffMu htimediffAl htimediffDe htimediffTr htimediffHe", save=False):
     gStyle.SetOptStat(0)
     gStyle.SetOptTitle(0)
-    dirlist = f[0].GetListOfKeys()
     hlist = []
+    if 1:  # Getting list of histograms
+        f = TFile(filerun3, "READ")
+        dirlist = f.GetListOfKeys()
     for i in dirlist:
         if i.GetName() in avoid:
             continue
         print("Directory", i)
-        d = f[0].Get(i.GetName()).GetListOfKeys()
+            d = f.Get(i.GetName()).GetListOfKeys()
         for j in d:
+                if j.GetName() in avoid:
+                    continue
             print(j)
             hlist.append(f"{i.GetName()}/{j.GetName()}")
     print(hlist)
-    h = [get(f, i) for i in hlist]
+    h = [gettwo(filerun2, filerun3, i) for i in hlist]
 
     makelegend(h[0])
 
     for i in h:
-        makecanvas(i[0].GetName(), i[0].GetName()).Divide(2, 1)
         drawtwo(i)
 
     gSystem.ProcessEvents()
+    if save:
     canvaslist[0].SaveAs("plots.pdf[")
     for i in canvaslist:
         i.SaveAs("plots.pdf")
     canvaslist[-1].SaveAs("plots.pdf]")
-    if "-b" not in input():
+    if "-b" not in argv:
         print("Press enter to continue")
         input()
 
