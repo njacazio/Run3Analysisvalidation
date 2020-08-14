@@ -20,7 +20,7 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   resp.LoadParamFromFile("/tmp/Analysis/PID/TPC/TPCReso/snapshot.root", "ccdb_object", DetectorResponse::kSigma);
 
   // Defining input
-  TChain* chain = CreateLocalChain(esdfile, "ESD", 10);
+  TChain* chain = CreateLocalChain(esdfile, "ESD");
   Printf("Computing TPC Pid Spectra");
   if (!chain) {
     printf("Error: no ESD chain found");
@@ -73,12 +73,12 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
     if (!SetEvent(chain, iEvent, esd))
       return kFALSE;
     //
-    if (applyeventcut && !AcceptVertex(esd))
+    if (applyeventcut && !VertexOK(esd))
       continue;
     //
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
-      if (!AcceptTrack(trk))
+      if (!TrackOK(trk))
         continue;
       //
       const AliExternalTrackParam* intp = trk->GetTPCInnerParam();

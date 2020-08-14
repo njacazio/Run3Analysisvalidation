@@ -23,7 +23,7 @@
 // Run3 includes
 #include "convertAO2D.C"
 
-bool AcceptVertex(AliESDEvent* esd)
+bool VertexOK(AliESDEvent* esd)
 {
   AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
   Printf("Applying event selection");
@@ -36,7 +36,7 @@ bool AcceptVertex(AliESDEvent* esd)
   return kTRUE;
 }
 
-bool AcceptTrack(AliESDtrack* trk, bool requireTOF = kFALSE)
+bool TrackOK(AliESDtrack* trk, bool requireTOF = kFALSE)
 {
   Int_t status = trk->GetStatus();
 
@@ -71,21 +71,27 @@ bool SetEvent(TChain* chain, int iEvent, AliESDEvent* esd)
 }
 
 TList* llists = new TList();
-void Save(TString fname)
+void Save(const TString fname)
 {
   TFile fout(fname, "RECREATE");
+  Printf("Saving to %s", fout.GetName());
   for (Int_t i = 0; i < llists->GetEntries(); i++) {
     TList* l = (TList*)llists->At(i);
     const TString dir = l->GetName();
+    Printf("Writing %s", dir.Data());
+    l->ls();
+    // l->At(0)->Print("ALL");
     fout.mkdir(dir);
     fout.cd(dir);
     l->Write();
+    fout.cd();
   }
   fout.Close();
 }
 
 TList* MakeList(TString name)
 {
+  llists->SetOwner();
   TList* l = new TList();
   llists->Add(l);
   l->SetName(name);
