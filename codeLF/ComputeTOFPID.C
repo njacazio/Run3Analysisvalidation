@@ -103,9 +103,8 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
     }
 
     // Recalculate unique event time and its resolution
-    float fEventTime = TMath::Mean(10, eventTime, eventTimeWeight); // Weighted mean of times per momentum interval
-
-    float fEventTimeRes = TMath::Sqrt(9. / 10.) * TMath::Mean(10, eventTimeRes); // PH bad approximation
+    const float fEventTime = TMath::Mean(10, eventTime, eventTimeWeight);              // Weighted mean of times per momentum interval
+    const float fEventTimeRes = TMath::Sqrt(9. / 10.) * TMath::Mean(10, eventTimeRes); // PH bad approximation
 
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
@@ -117,8 +116,8 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
       const float length = trk->GetIntegratedLength();
       const float time = trk->GetTOFsignal();
 
-      const float EVTIME = tofresp.GetStartTime(Mom);
-      // const float EVTIME = fEventTime;
+      // const float EVTIME = tofresp.GetStartTime(Mom);
+      const float EVTIME = fEventTime;
       // const float EVTIME = eventTime[0];
 
       // Speed of ligth in TOF units
