@@ -6,3 +6,4 @@
 *.d
 *ACLiC*
 .vscode/
+__pycache__
