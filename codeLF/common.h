@@ -23,7 +23,7 @@
 // Run3 includes
 #include "convertAO2D.C"
 
-bool VertexOK(AliESDEvent* esd)
+bool VertexOK(AliESDEvent* esd, TH1* h = nullptr)
 {
   AliESDVertex* primvtx = (AliESDVertex*)esd->GetPrimaryVertex();
   Printf("Applying event selection");
@@ -33,6 +33,8 @@ bool VertexOK(AliESDEvent* esd)
     return kFALSE;
   if (primvtx->GetNContributors() < 2)
     return kFALSE;
+  if (h)
+    h->Fill(primvtx->GetZ());
   return kTRUE;
 }
 

@@ -28,8 +28,11 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
 
   TList* lh = nullptr;
   lh = MakeList("tofqa-task");
+  DOTH1F(hvtxz, ";Vertex Z position;Events", 300, -15, 15);
   DOTH1F(hevtime, ";Event time (ns);Tracks", 100, -2, 2);
+  DOTH1F(heta, ";#eta;Tracks", 100, -1, 1);
   DOTH1F(hp, ";#it{p} (GeV/#it{c});Tracks", 100, 0, 20);
+  DOTH1F(hpt, ";#it{p}_{T} (GeV/#it{c});Tracks", 100, 0, 20);
   DOTH1F(hlength, ";Track Length (cm);Tracks", 100, 0, 1000);
   DOTH1F(htime, ";TOF Time (ns);Tracks", 1000, 0, 600);
   DOTH2F(hp_beta, ";#it{p} (GeV/#it{c});TOF #beta;Tracks", 100, 0, 20, 100, 0, 2);
@@ -85,7 +88,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
     // pidr->SetTOFResponse(esd, AliPIDResponse::kT0_T0);
     pidr->SetTOFResponse(esd, AliPIDResponse::kTOF_T0);
 
-    if (applyeventcut && !VertexOK(esd))
+    if (applyeventcut && !VertexOK(esd, hvtxz))
       continue;
 
     Float_t eventTime[10];
@@ -105,7 +108,6 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
     // Recalculate unique event time and its resolution
     const float fEventTime = TMath::Mean(10, eventTime, eventTimeWeight);              // Weighted mean of times per momentum interval
     const float fEventTimeRes = TMath::Sqrt(9. / 10.) * TMath::Mean(10, eventTimeRes); // PH bad approximation
-
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
       if (!TrackOK(trk, kTRUE))
@@ -129,11 +131,14 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
       const Float_t tofexpmom = AliPID::ParticleMass(tof_pid) * exp_beta * cspeed / TMath::Sqrt(1. - (exp_beta * exp_beta));
       resp.UpdateTrack(Mom, tofexpmom / cspeed, length, time);
 
+      heta->Fill(trk->Eta());
       hp->Fill(Mom);
+      hpt->Fill(pt);
       hlength->Fill(length);
       htime->Fill(time / 1000);
       hevtime->Fill(EVTIME / 1000);
       const float TOF = time - EVTIME;
+      hp_beta->Fill(Mom, resp.GetBeta(length, time, EVTIME));
       //
       htimediffEl->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kElectron)));
       htimediffMu->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kMuon)));
