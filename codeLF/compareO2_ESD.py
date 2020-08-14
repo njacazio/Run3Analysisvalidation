@@ -139,6 +139,7 @@ def drawtwo(h, logx=False, logy=False, project=False, ratio=True, diff=True, V=T
         print("Drawing", h)
     if "TH2" in hrun2.ClassName():
         draw(hrun2, "COLZ", puttitle=True)
+        drawcounts([hrun2])
         nextpad()
         if logy:
             gPad.SetLogy()
@@ -147,6 +148,7 @@ def drawtwo(h, logx=False, logy=False, project=False, ratio=True, diff=True, V=T
         if th2mode:
             gPad.SetLogz()
         draw(hrun3, "COLZ", puttitle=True)
+        drawcounts([hrun3])
     else:
         draw(hrun2)
         draw(hrun3, "same")
@@ -199,7 +201,7 @@ def makecanvas(cname, ctit, sizex=1600, sizey=1600, nx=1, ny=1):
     return c
 
 
-def compare(filerun3, filerun2, avoid="tofspectra-task tofnsigma-task tofqa-task htimediffEl htimediffMu htimediffAl htimediffDe htimediffTr htimediffHe", save=False):
+def compare(filerun3, filerun2, avoid="tofspectra-task tofnsigma-task htimediffEl htimediffMu htimediffAl htimediffDe htimediffTr htimediffHe", save=False):
     gStyle.SetOptStat(0)
     gStyle.SetOptTitle(0)
     hlist = []
