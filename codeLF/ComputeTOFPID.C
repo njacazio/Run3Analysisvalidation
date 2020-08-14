@@ -6,8 +6,7 @@
 
 using namespace o2::pid;
 
-Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
-                     bool applyeventcut = 0)
+Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
 {
   // Defining response
   auto resp = tof::Response();
@@ -17,7 +16,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt",
   resp.LoadParamFromFile("/tmp/Analysis/PID/TOF/TOFReso/snapshot.root", "ccdb_object", DetectorResponse::kSigma);
 
   // Defining input
-  TChain* chain = CreateLocalChain(esdfile, "ESD", 10);
+  TChain* chain = CreateLocalChain(esdfile, "ESD", 100);
   Printf("Computing TOF Pid Spectra");
   if (!chain) {
     printf("Error: no ESD chain found");
