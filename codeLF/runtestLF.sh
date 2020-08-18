@@ -21,11 +21,15 @@ if [[ $DOCONVERT -eq 1 ]]; then
 fi
 
 if [[ $DORUN1 -eq 1 ]]; then
-    root -q -l -b "ComputeTOFPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
+#    root -q -l -b "ComputeTOFPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
+    root -q -l -b "ComputeTPCPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
 fi
 
 if [[ $DORUN3 -eq 1 ]]; then
     ./runTOFO2.sh
+    mv AnalysisResults.root AnalysisResults_TOF.root
+    ./runTPCO2.sh
+    mv AnalysisResults.root AnalysisResults_TPC.root
 fi
 
 if [[ $DOCOMPARE -eq 1 ]]; then

@@ -6,7 +6,7 @@
 
 using namespace o2::pid;
 
-Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
+Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0, bool ismc = kFALSE)
 {
   // Defining response
   auto resp = tof::Response();
@@ -78,7 +78,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
   DOTH2F(hp_beta_El, ";#it{p} (GeV/#it{c});#beta - #beta_{el};Tracks", 100, 0, 20, 100, -0.01, 0.01);
   DOTH2F(hp_betasigma_El, ";#it{p} (GeV/#it{c});(#beta - #beta_{el})/#sigma;Tracks", 100, 0, 20, 100, -5, 5);
 
-  AliPIDResponse* pidr = new AliPIDResponse(kTRUE);
+  AliPIDResponse* pidr = new AliPIDResponse(ismc);
 
   for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
     if (!SetEvent(chain, iEvent, esd))
@@ -94,14 +94,14 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
     Float_t eventTime[10];
     Float_t eventTimeRes[10];
     Double_t eventTimeWeight[10];
-    AliTOFPIDResponse tofresp = pidr->GetTOFResponse();
+    AliTOFPIDResponse TOFresp = pidr->GetTOFResponse();
 
-    for (Int_t i = 0; i < tofresp.GetNmomBins(); i++) {
-      Float_t mom = (tofresp.GetMinMom(i) + tofresp.GetMaxMom(i)) / 2.f;
-      // Printf("Mom [%.2f, %.2f] = %.2f", tofresp.GetMinMom(i), tofresp.GetMaxMom(i), mom);
-      eventTime[i] = tofresp.GetStartTime(mom);
+    for (Int_t i = 0; i < TOFresp.GetNmomBins(); i++) {
+      Float_t mom = (TOFresp.GetMinMom(i) + TOFresp.GetMaxMom(i)) / 2.f;
+      // Printf("Mom [%.2f, %.2f] = %.2f", TOFresp.GetMinMom(i), TOFresp.GetMaxMom(i), mom);
+      eventTime[i] = TOFresp.GetStartTime(mom);
       // Printf("T0=%f", eventTime[i]);
-      eventTimeRes[i] = tofresp.GetStartTimeRes(mom);
+      eventTimeRes[i] = TOFresp.GetStartTimeRes(mom);
       eventTimeWeight[i] = 1. / (eventTimeRes[i] * eventTimeRes[i]);
     }
 
@@ -118,7 +118,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
       const float length = trk->GetIntegratedLength();
       const float time = trk->GetTOFsignal();
 
-      // const float EVTIME = tofresp.GetStartTime(Mom);
+      // const float EVTIME = TOFresp.GetStartTime(Mom);
       const float EVTIME = fEventTime;
       // const float EVTIME = eventTime[0];
 
@@ -127,7 +127,7 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
       // PID hypothesis for the momentum extraction
       const AliPID::EParticleType tof_pid = AliPID::kPion;
       // Expected beta for such hypothesis
-      const Float_t exp_beta = (length / tofresp.GetExpectedSignal(trk, tof_pid) / cspeed);
+      const Float_t exp_beta = (length / TOFresp.GetExpectedSignal(trk, tof_pid) / cspeed);
       const Float_t tofexpmom = AliPID::ParticleMass(tof_pid) * exp_beta * cspeed / TMath::Sqrt(1. - (exp_beta * exp_beta));
       resp.UpdateTrack(Mom, tofexpmom / cspeed, length, time);
 
@@ -140,25 +140,33 @@ Bool_t ComputeTOFPID(TString esdfile = "esdLHC15o.txt", bool applyeventcut = 0)
       const float TOF = time - EVTIME;
       hp_beta->Fill(Mom, resp.GetBeta(length, time, EVTIME));
       //
-      htimediffEl->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kElectron)));
-      htimediffMu->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kMuon)));
-      htimediffPi->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kPion)));
-      htimediffKa->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kKaon)));
-      htimediffPr->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kProton)));
-      htimediffDe->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kDeuteron)));
-      htimediffTr->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kTriton)));
-      htimediffHe->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kHe3)));
-      htimediffAl->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kAlpha)));
+      int counter = 0;
+// #define EXP_SIGNAL resp.GetExpectedSignal(counter++)
+#define EXP_SIGNAL TOFresp.GetExpectedSignal(trk, pidarray[counter++])
+
+      htimediffEl->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffMu->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffPi->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffKa->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffPr->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffDe->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffTr->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffHe->Fill(Mom, (TOF - EXP_SIGNAL));
+      htimediffAl->Fill(Mom, (TOF - EXP_SIGNAL));
       //
-      hnsigmaEl->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kElectron)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kElectron));
-      hnsigmaMu->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kMuon)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kMuon));
-      hnsigmaPi->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kPion)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kPion));
-      hnsigmaKa->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kKaon)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kKaon));
-      hnsigmaPr->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kProton)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kProton));
-      hnsigmaDe->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kDeuteron)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kDeuteron));
-      hnsigmaTr->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kTriton)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kTriton));
-      hnsigmaHe->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kHe3)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kHe3));
-      hnsigmaAl->Fill(Mom, (TOF - tofresp.GetExpectedSignal(trk, AliPID::kAlpha)) / tofresp.GetExpectedSigma(Mom, time, AliPID::kAlpha));
+      counter = 0;
+// #define EXP_SIGMA resp.GetSeparation(counter++)
+// #define EXP_SIGMA TOFresp.GetExpectedSignal(trk, AliPID::kElectron + counter++)
+#define EXP_SIGMA (TOF - TOFresp.GetExpectedSignal(trk, pidarray[counter])) / TOFresp.GetExpectedSigma(Mom, time, pidarray[counter++])
+      hnsigmaEl->Fill(Mom, EXP_SIGMA);
+      hnsigmaMu->Fill(Mom, EXP_SIGMA);
+      hnsigmaPi->Fill(Mom, EXP_SIGMA);
+      hnsigmaKa->Fill(Mom, EXP_SIGMA);
+      hnsigmaPr->Fill(Mom, EXP_SIGMA);
+      hnsigmaDe->Fill(Mom, EXP_SIGMA);
+      hnsigmaTr->Fill(Mom, EXP_SIGMA);
+      hnsigmaHe->Fill(Mom, EXP_SIGMA);
+      hnsigmaAl->Fill(Mom, EXP_SIGMA);
       //
 
       if (pidr->NumberOfSigmasTOF(trk, AliPID::kElectron) < 3) {
