@@ -91,6 +91,8 @@ void Save(const TString fname)
   fout.Close();
 }
 
+const AliPID::EParticleType pidarray[10] = {AliPID::kElectron, AliPID::kMuon, AliPID::kPion, AliPID::kKaon, AliPID::kProton, AliPID::kDeuteron, AliPID::kTriton, AliPID::kHe3, AliPID::kAlpha};
+
 TList* MakeList(TString name)
 {
   llists->SetOwner();
