@@ -9,19 +9,20 @@ if [[ -z $LISTNAME ]]; then
     exit
 fi
 
-DOCONVERT=0
+DOCONVERT=1
 DORUN1=1
-DORUN3=0
+DORUN3=1
 DOCOMPARE=0
 
 APPLYEVTSELRUN1=1
 
 if [[ $DOCONVERT -eq 1 ]]; then
     root -q -l "convertAO2D.C(\"$LISTNAME\", 0)"
+    rm event_stat.root EventStat_temp.root
 fi
 
 if [[ $DORUN1 -eq 1 ]]; then
-#    root -q -l -b "ComputeTOFPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
+    root -q -l -b "ComputeTOFPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
     root -q -l -b "ComputeTPCPID.C+g(\"$LISTNAME\", $APPLYEVTSELRUN1)"
 fi
 
