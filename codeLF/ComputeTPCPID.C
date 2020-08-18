@@ -8,7 +8,8 @@
 using namespace o2::pid;
 
 Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
-                     bool applyeventcut = 0)
+                     bool applyeventcut = 0,
+                     bool ismc = kFALSE)
 {
   // Defining response
   auto resp = tpc::Response();
@@ -30,7 +31,7 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   Printf("Reading TTree with %lli events", chain->GetEntries());
   esd->ReadFromTree(chain);
 
-  TList* lh = MakeList("tpcqa-task");
+  TList* lh = MakeList("TPCpidqa-expsignal-task");
 
 #define BIN_AXIS 1000, 0, 5, 1000, 0, 1000
 
@@ -45,6 +46,11 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   DOTH2F(hexpHe, ";#it{p} (GeV/#it{c});TPC expected signal ^{3}He;Tracks", BIN_AXIS);
   DOTH2F(hexpAl, ";#it{p} (GeV/#it{c});TPC expected signal #alpha;Tracks", BIN_AXIS);
 
+  lh = MakeList("TPCpidqa-signalwTOF-task");
+  DOTH2F(htpcsignalPi, ";#it{p} (GeV/#it{c});TPC Signal;Tracks", BIN_AXIS);
+  DOTH2F(htpcsignalKa, ";#it{p} (GeV/#it{c});TPC Signal;Tracks", BIN_AXIS);
+  DOTH2F(htpcsignalPr, ";#it{p} (GeV/#it{c});TPC Signal;Tracks", BIN_AXIS);
+  DOTH2F(htpcsignalDe, ";#it{p} (GeV/#it{c});TPC Signal;Tracks", BIN_AXIS);
 #undef BIN_AXIS
 
   // Log binning for p
@@ -68,6 +74,26 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
   hexpTr->GetXaxis()->Set(nbins, binp);
   hexpHe->GetXaxis()->Set(nbins, binp);
   hexpAl->GetXaxis()->Set(nbins, binp);
+  //
+  htpcsignalPi->GetXaxis()->Set(nbins, binp);
+  htpcsignalKa->GetXaxis()->Set(nbins, binp);
+  htpcsignalPr->GetXaxis()->Set(nbins, binp);
+  htpcsignalDe->GetXaxis()->Set(nbins, binp);
+
+  lh = MakeList("TPCpidqa-nsigma-task");
+
+  DOTH2F(hnsigmaEl, ";#it{p} (GeV/#it{c});TPC N_{sigma e};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaMu, ";#it{p} (GeV/#it{c});TPC N_{sigma #mu};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaPi, ";#it{p} (GeV/#it{c});TPC N_{sigma #pi};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaKa, ";#it{p} (GeV/#it{c});TPC N_{sigma K};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaPr, ";#it{p} (GeV/#it{c});TPC N_{sigma p};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaDe, ";#it{p} (GeV/#it{c});TPC N_{sigma d};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaTr, ";#it{p} (GeV/#it{c});TPC N_{sigma t};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaHe, ";#it{p} (GeV/#it{c});TPC N_{sigma ^{3}He};Tracks", 100, 0, 5, 100, -10, 10);
+  DOTH2F(hnsigmaAl, ";#it{p} (GeV/#it{c});TPC N_{sigma #alpha};Tracks", 100, 0, 5, 100, -10, 10);
+
+  // Aliroot response
+  AliPIDResponse* pidr = new AliPIDResponse(ismc);
 
   for (Int_t iEvent = 0; iEvent < chain->GetEntries(); iEvent++) { // Loop on events
     if (!SetEvent(chain, iEvent, esd))
@@ -76,6 +102,8 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
     if (applyeventcut && !VertexOK(esd))
       continue;
     //
+    AliTPCPIDResponse TPCresp = pidr->GetTPCResponse();
+
     for (Int_t itrk = 0; itrk < esd->GetNumberOfTracks(); itrk++) {
       AliESDtrack* trk = esd->GetTrack(itrk);
       if (!TrackOK(trk))
@@ -86,15 +114,31 @@ Bool_t ComputeTPCPID(TString esdfile = "esdLHC15o.txt",
       resp.UpdateTrack(mom, trk->GetTPCsignal(), (trk->GetTPCSharedMap()).CountBits());
       htpcsignal->Fill(mom, trk->GetTPCsignal());
       int counter = 0;
-      hexpEl->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpMu->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpPi->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpKa->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpPr->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpDe->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpTr->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpHe->Fill(mom, resp.GetExpectedSignal(counter++));
-      hexpAl->Fill(mom, resp.GetExpectedSignal(counter++));
+// Exp values
+// #define EXP_SIGNAL resp.GetExpectedSignal(counter++)
+#define EXP_SIGNAL TPCresp.GetExpectedSignal(trk, pidarray[counter++])
+      hexpEl->Fill(mom, EXP_SIGNAL);
+      hexpMu->Fill(mom, EXP_SIGNAL);
+      hexpPi->Fill(mom, EXP_SIGNAL);
+      hexpKa->Fill(mom, EXP_SIGNAL);
+      hexpPr->Fill(mom, EXP_SIGNAL);
+      hexpDe->Fill(mom, EXP_SIGNAL);
+      hexpTr->Fill(mom, EXP_SIGNAL);
+      hexpHe->Fill(mom, EXP_SIGNAL);
+      hexpAl->Fill(mom, EXP_SIGNAL);
+      // Nsigma
+      counter = 0;
+// #define EXP_SIGMA resp.GetSeparation(counter++)
+#define EXP_SIGMA TPCresp.GetNumberOfSigmas(trk, pidarray[counter++])
+      hnsigmaEl->Fill(mom, EXP_SIGMA);
+      hnsigmaMu->Fill(mom, EXP_SIGMA);
+      hnsigmaPi->Fill(mom, EXP_SIGMA);
+      hnsigmaKa->Fill(mom, EXP_SIGMA);
+      hnsigmaPr->Fill(mom, EXP_SIGMA);
+      hnsigmaDe->Fill(mom, EXP_SIGMA);
+      hnsigmaTr->Fill(mom, EXP_SIGMA);
+      hnsigmaHe->Fill(mom, EXP_SIGMA);
+      hnsigmaAl->Fill(mom, EXP_SIGMA);
     }
     esd->ResetStdContent();
   }
