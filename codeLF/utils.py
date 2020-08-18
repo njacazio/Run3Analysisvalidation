@@ -36,10 +36,10 @@ def gettwo(run2, run3, hn, d="", V=True):
     hr3 = get_obj(run3, hn, d)
     # Set style of histos
     hr2.SetTitle("Run2")
-    hr2.SetName(hr2.GetName() + run2)
+    hr2.SetName(hr2.GetName())
     hr2.SetLineColor(2)
     hr2.SetLineStyle(7)
     hr2.SetLineWidth(2)
     hr3.SetTitle("Run3")
-    hr3.SetName(hr3.GetName() + run3)
+    hr3.SetName(hr3.GetName())
     return hr2, hr3

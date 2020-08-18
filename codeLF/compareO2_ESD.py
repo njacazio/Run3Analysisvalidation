@@ -200,8 +200,9 @@ def makecanvas(cname, ctit, sizex=1600, sizey=1600, nx=1, ny=1):
     canvaslist.append(c)
     return c
 
-
-def compare(filerun3, filerun2, avoid="tofspectra-task tofnsigma-task htimediffEl htimediffMu htimediffAl htimediffDe htimediffTr htimediffHe", save=False):
+nsigma=" hnsigmaEl hnsigmaMu hnsigmaDe  hnsigmaTr  hnsigmaHe  hnsigmaAl"
+exptime=" htimediffEl htimediffMu htimediffAl htimediffDe htimediffTr htimediffHe"
+def compare(filerun3, filerun2, avoid="tofqa-task tofspectra-task" + exptime + nsigma, save=False):
     gStyle.SetOptStat(0)
     gStyle.SetOptTitle(0)
     hlist = []
