@@ -39,7 +39,7 @@ void convertAO2D(TString listoffiles, int ismc = 1, int nmaxevents = -1)
 
   // Create the chain based on xml collection or txt file
   // The entries in the txt file can be local paths or alien paths
-  TChain* chain = CreateLocalChain(listoffiles.Data(), anatype, 10);
+  TChain* chain = CreateLocalChain(listoffiles.Data(), anatype);
   if (!chain)
     return;
   chain->SetNotify(0x0);
@@ -90,6 +90,8 @@ TChain* CreateLocalChain(const char* txtfile, TString type, int nfiles)
     in >> line;
     if (line.IsNull() || line.BeginsWith("#"))
       continue;
+    if (line.BeginsWith("%"))
+      break;
     if (count++ == nfiles) {
       Printf("Stopping chain at %i files", count);
       break;
@@ -105,6 +107,11 @@ TChain* CreateLocalChain(const char* txtfile, TString type, int nfiles)
   in.close();
   if (!chain->GetListOfFiles()->GetEntries()) {
     Error("CreateLocalChain", "No file from %s could be opened", txtfile);
+    delete chain;
+    return nullptr;
+  }
+  if (count == 0) {
+    Error("CreateLocalChain", "Add 0 files from %s", txtfile);
     delete chain;
     return nullptr;
   }
