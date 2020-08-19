@@ -4,7 +4,7 @@
 Set of utilities for analysis
 """
 
-from ROOT import TFile
+from ROOT import TFile, gPad
 
 
 def get_obj(input_file, obj_name, path="", V=True):
@@ -43,3 +43,8 @@ def gettwo(run2, run3, hn, d="", V=True):
     hr3.SetTitle("Run3")
     hr3.SetName(hr3.GetName())
     return hr2, hr3
+
+
+def draw(obj, opt=""):
+    obj.Draw(opt)
+    gPad.Update()
