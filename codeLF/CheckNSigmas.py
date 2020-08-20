@@ -13,6 +13,9 @@ def main(input_file, obj_name):
     obj_name = obj_name.split("/")
     dir_name = "/".join(obj_name[:-1])
     h = get_obj(input_file, obj_name[-1], dir_name)
+    if not h:
+        print("Provide a object name to draw!")
+        return
     can = TCanvas("nsigma", "nsigma")
     can.SetLogz()
     draw(h, "COLZ")

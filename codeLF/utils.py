@@ -20,9 +20,11 @@ def get_obj(input_file, obj_name, path="", V=True):
         return
     if V:
         print("Getting", obj_name, "from", input_file.GetName())
+    if path != "" and not path.endswith("/"):
+        path += "/"
     obj = input_file.Get(f"{path}{obj_name}")
     if not obj:
-        print("Did not find", obj_name)
+        print("Did not find", obj_name, "inside", path)
         return None
     if "TH" in obj.ClassName():
         obj.SetDirectory(0)
