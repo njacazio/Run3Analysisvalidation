@@ -35,7 +35,7 @@ TaskCheckMC* AddTaskCheckMC(const TString partName)
   }
 
   /*  create task and connect input/output */
-  TaskCheckMC* task = new TaskCheckMC(partName, tag);
+  TaskCheckMC* task = new TaskCheckMC(partName);
   mgr->ConnectInput(task, 0, inputc);
 
   /* return task */
