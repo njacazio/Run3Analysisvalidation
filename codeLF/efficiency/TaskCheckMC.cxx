@@ -144,6 +144,7 @@ void TaskCheckMC::UserExec(Option_t*)
   if (!fEventCuts.AcceptEvent(esdEvent)) {
     return;
   }
+  events++;
 
   /*** MONTECARLO PARTICLES ***/
 
@@ -159,5 +160,14 @@ void TaskCheckMC::UserExec(Option_t*)
     /* check physical primary */
     if (!mcStack->IsPhysicalPrimary(ipart))
       continue;
+    primaryparticles++;
   }
+}
+
+void TaskCheckMC::Terminate(Option_t*)
+{
+  // terminate
+  // called at the END of the analysis (when all events are processed)
+  Printf("Events %i", events);
+  Printf("Primaries %i", primaryparticles);
 }

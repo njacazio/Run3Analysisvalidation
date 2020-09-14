@@ -25,12 +25,16 @@ class TaskCheckMC : public AliAnalysisTaskSE {
 
   void UserCreateOutputObjects();  // user create output objects
   void UserExec(Option_t* option); // user exec
+  virtual void Terminate(Option_t* option);
 
   protected:
   // copy constructor
   TaskCheckMC(const TaskCheckMC&);
   // operator=
   TaskCheckMC& operator=(const TaskCheckMC&);
+
+  int events = 0;
+  int primaryparticles = 0;
 
   ClassDef(TaskCheckMC, 1);
 };
