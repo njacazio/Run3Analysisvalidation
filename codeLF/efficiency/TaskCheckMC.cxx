@@ -23,14 +23,27 @@ TaskCheckMC::TaskCheckMC(const TString partName)
     : AliAnalysisTaskSE("TaskCheckMC" + partName)
     , fEventCuts()
 {
+  DefineOutput(1, TList::Class());
 }
 
 TaskCheckMC::~TaskCheckMC()
 {
   Printf("Called destructor");
 }
+#define PDGBINNING 100, 0, 100
 
-void TaskCheckMC::UserCreateOutputObjects() {}
+void TaskCheckMC::UserCreateOutputObjects()
+{
+  lOut = new TList();
+  lOut->SetOwner(kTRUE);
+
+  ptH = new TH2F("pt", "pt;#it{p}_{T} (GeV/#it{c});PDG code", 500, 0, 20, PDGBINNING);
+  lOut->Add(ptH);
+  pdgH = new TH1F("pdg", "pdg;PDG code", PDGBINNING);
+  lOut->Add(pdgH);
+  PostData(1, lOut);
+}
+#undef PDGBINNING
 
 Bool_t IsStable(Int_t pdg)
 {
@@ -187,6 +200,8 @@ void TaskCheckMC::UserExec(Option_t*)
 
   /* collision candidate */
   if (!fEventCuts.AcceptEvent(esdEvent)) {
+    PostData(1, lOut);
+
     return;
   }
   events++;
@@ -217,7 +232,14 @@ void TaskCheckMC::UserExec(Option_t*)
     if (!mcStack->IsPhysicalPrimary(ipart))
       continue;
     primaryparticles++;
+
+    const auto pdg = Form("%i", particle->GetPdgCode());
+    pdgH->Fill(pdg, 1);
+    const float pdgbin = pdgH->GetXaxis()->GetBinCenter(pdgH->GetXaxis()->FindBin(pdg));
+
+    ptH->Fill(particle->Pt(), pdgbin);
   }
+  PostData(1, lOut);
 }
 
 void TaskCheckMC::Terminate(Option_t*)

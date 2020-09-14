@@ -34,9 +34,17 @@ TaskCheckMC* AddTaskCheckMC(const TString partName)
     return NULL;
   }
 
+  /* create output data container */
+  AliAnalysisDataContainer* outputc = mgr->CreateContainer("generator-histogram", TList::Class(), AliAnalysisManager::kOutputContainer, "AnalysisResults.root");
+  if (!outputc) {
+    Error("", "cannot create output container \"Histos\"");
+    return NULL;
+  }
+
   /*  create task and connect input/output */
   TaskCheckMC* task = new TaskCheckMC(partName);
   mgr->ConnectInput(task, 0, inputc);
+  mgr->ConnectOutput(task, 1, outputc);
 
   /* return task */
   return task;

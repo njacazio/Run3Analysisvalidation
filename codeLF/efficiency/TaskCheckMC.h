@@ -8,6 +8,7 @@
 #include "AliEventCuts.h"
 #include "AliPID.h"
 #include "TEfficiency.h"
+#include "TH2F.h"
 
 /// Task to build the material for the tracking and TOF matching efficiencies
 #include "AliEventCuts.h"
@@ -32,6 +33,10 @@ class TaskCheckMC : public AliAnalysisTaskSE {
   TaskCheckMC(const TaskCheckMC&);
   // operator=
   TaskCheckMC& operator=(const TaskCheckMC&);
+
+  TList* lOut = nullptr;
+  TH1F* pdgH = nullptr; //!
+  TH2F* ptH = nullptr;  //!
 
   int events = 0;
   int particles = 0;
