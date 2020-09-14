@@ -207,7 +207,7 @@ void TaskCheckMC::UserExec(Option_t*)
 #endif
     if (!particle)
       continue;
-    if (TMath::Abs(particle->Eta() > 0.8))
+    if (TMath::Abs(particle->Eta()) > 0.8)
       continue;
     if (isphys(ipart, mcStack))
       myprimaryparticles++;
