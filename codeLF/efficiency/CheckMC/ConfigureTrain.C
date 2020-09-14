@@ -16,7 +16,7 @@ void ConfigureTrain()
       // Signature: Bool_t mCAnalysisFlag, Bool_t applyPileupCuts
       (gROOT->ProcessLine("AddTaskPhysicsSelection(false, true)"));
 
-  gROOT->LoadMacro("TaskEff.cxx+g");
-  gROOT->LoadMacro("AddTaskEff.C");
-  gROOT->ProcessLine("AddTaskEff(\"check\");");
+  gROOT->LoadMacro("TaskCheckMC.cxx+g");
+  gROOT->LoadMacro("AddTaskCheckMC.C");
+  gROOT->ProcessLine("AddTaskCheckMC(\"check\");");
 }
