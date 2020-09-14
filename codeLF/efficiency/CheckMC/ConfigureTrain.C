@@ -1,5 +1,7 @@
 #include <string>
 
+#include <AliExternalTrackParam.h>
+
 #include <AliAnalysisTaskAO2Dconverter.h>
 #include <AliAnalysisTaskPIDResponse.h>
 #include <AliAnalysisTaskWeakDecayVertexer.h>
@@ -16,24 +18,25 @@ void ConfigureTrain()
   // PhysicsSelection Configuration
   gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
   gROOT->ProcessLine("AddTaskPhysicsSelection(kTRUE)");
+  if (1) {
+    // PID
+    gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
+    gROOT->ProcessLine("AddTaskPIDResponse()");
 
-  // PID
-  gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
-  gROOT->ProcessLine("AddTaskPIDResponse()");
+    // Weak decays
+    gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/STRANGENESS/Cascades/Run2/macros/AddTaskWeakDecayVertexer.C");
+    AliAnalysisTaskWeakDecayVertexer* decays = reinterpret_cast<AliAnalysisTaskWeakDecayVertexer*>(gROOT->ProcessLine("AddTaskWeakDecayVertexer()"));
+    decays->SetUseImprovedFinding();
+    decays->SetupLooseVertexing();
+    decays->SetRevertexAllEvents(kTRUE);
 
-  // Weak decays
-  gROOT->LoadMacro("$ALICE_ROOT/PWGLF/STRANGENESS/Cascades/Run2/macros/AddTaskWeakDecayVertexer.C");
-  AliAnalysisTaskWeakDecayVertexer* decays = reinterpret_cast<AliAnalysisTaskWeakDecayVertexer*>(gROOT->ProcessLine("AddTaskPIDResponse()"));
-  decays->SetUseImprovedFinding();
-  decays->SetupLooseVertexing();
-  decays->SetRevertexAllEvents(kTRUE);
-
-  // Converter
-  gROOT->LoadMacro("$ALICE_PHYSICS/RUN3/AddTaskAO2Dconverter.C");
-  AliAnalysisTaskAO2Dconverter* converter = reinterpret_cast<AliAnalysisTaskAO2Dconverter*>(gROOT->ProcessLine("AddTaskAO2Dconverter()"));
-  converter->SetMCMode();
-  converter->SetTruncation(true);
-
+    // Converter
+    gROOT->LoadMacro("$ALICE_PHYSICS/RUN3/AddTaskAO2Dconverter.C");
+    AliAnalysisTaskAO2Dconverter* converter = reinterpret_cast<AliAnalysisTaskAO2Dconverter*>(gROOT->ProcessLine("AddTaskAO2Dconverter()"));
+    converter->SetMCMode();
+    converter->SetUseEventCuts(true);
+    converter->SetTruncation(true);
+  }
   gROOT->LoadMacro("TaskCheckMC.cxx+g");
   gROOT->LoadMacro("AddTaskCheckMC.C");
   gROOT->ProcessLine("AddTaskCheckMC(\"check\");");

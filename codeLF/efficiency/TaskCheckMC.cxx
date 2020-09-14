@@ -194,9 +194,17 @@ void TaskCheckMC::UserExec(Option_t*)
   /*** MONTECARLO PARTICLES ***/
 
   /* loop over MC stack */
+
+  TParticle* particle;
+#if 0
   for (Int_t ipart = 0; ipart < mcStack->GetNtrack(); ipart++) {
     /* get particle */
-    TParticle* particle = mcStack->Particle(ipart);
+    particle = mcStack->Particle(ipart);
+#else
+  for (Int_t ipart = 0; ipart < mcEvent->GetNumberOfTracks(); ++ipart) {
+    AliVParticle* vpt = mcEvent->GetTrack(ipart);
+    particle = vpt->Particle();
+#endif
     if (!particle)
       continue;
     if (TMath::Abs(particle->Eta() > 0.8))
@@ -204,6 +212,7 @@ void TaskCheckMC::UserExec(Option_t*)
     if (isphys(ipart, mcStack))
       myprimaryparticles++;
 
+    particles++;
     /* check physical primary */
     if (!mcStack->IsPhysicalPrimary(ipart))
       continue;
@@ -216,6 +225,7 @@ void TaskCheckMC::Terminate(Option_t*)
   // terminate
   // called at the END of the analysis (when all events are processed)
   Printf("Events %i", events);
+  Printf("Particles %i", particles);
   Printf("Primaries %i", primaryparticles);
   Printf("My Primaries %i", myprimaryparticles);
 }

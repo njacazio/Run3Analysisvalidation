@@ -34,6 +34,7 @@ class TaskCheckMC : public AliAnalysisTaskSE {
   TaskCheckMC& operator=(const TaskCheckMC&);
 
   int events = 0;
+  int particles = 0;
   int primaryparticles = 0;
   int myprimaryparticles = 0;
 
