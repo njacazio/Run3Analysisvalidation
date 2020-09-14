@@ -1,5 +1,6 @@
 #include <string>
 
+#include <AliAnalysisTaskAO2Dconverter.h>
 #include <AliPhysicsSelectionTask.h>
 #include <TROOT.h>
 
@@ -19,4 +20,10 @@ void ConfigureTrain()
   gROOT->LoadMacro("TaskCheckMC.cxx+g");
   gROOT->LoadMacro("AddTaskCheckMC.C");
   gROOT->ProcessLine("AddTaskCheckMC(\"check\");");
+
+  // Converter
+  gROOT->LoadMacro("$ALICE_PHYSICS/RUN3/AddTaskAO2Dconverter.C");
+  AliAnalysisTaskAO2Dconverter* converter = reinterpret_cast<AliAnalysisTaskAO2Dconverter*>(gROOT->ProcessLine("AddTaskAO2Dconverter()"));
+  converter->SetMCMode();
+  converter->SetTruncation(true);
 }
