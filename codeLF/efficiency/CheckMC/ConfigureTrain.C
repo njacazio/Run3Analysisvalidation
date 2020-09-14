@@ -15,7 +15,7 @@ void ConfigureTrain()
   // Use a reinterpreted cast to get the task for further configurations in this task
   AliPhysicsSelectionTask* ps = reinterpret_cast<AliPhysicsSelectionTask*>
       // Signature: Bool_t mCAnalysisFlag, Bool_t applyPileupCuts
-      (gROOT->ProcessLine("AddTaskPhysicsSelection(false, true)"));
+      (gROOT->ProcessLine("AddTaskPhysicsSelection(true, true)"));
 
   gROOT->LoadMacro("TaskCheckMC.cxx+g");
   gROOT->LoadMacro("AddTaskCheckMC.C");
