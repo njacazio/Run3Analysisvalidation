@@ -3,6 +3,7 @@
 #include <AliAnalysisTaskAO2Dconverter.h>
 #include <AliAnalysisTaskPIDResponse.h>
 #include <AliAnalysisTaskWeakDecayVertexer.h>
+#include <AliExternalTrackParam.h>
 #include <AliPhysicsSelectionTask.h>
 #include <TROOT.h>
 

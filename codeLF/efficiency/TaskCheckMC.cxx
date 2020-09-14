@@ -32,7 +32,7 @@ TaskCheckMC::~TaskCheckMC()
 
 void TaskCheckMC::UserCreateOutputObjects() {}
 
-bool isphys(TParticle* particle)
+bool isphys(TParticle* particle, AliStack* stack)
 {
 #if 0
   if (!p)
@@ -153,6 +153,8 @@ void TaskCheckMC::UserExec(Option_t*)
     /* get particle */
     TParticle* particle = mcStack->Particle(ipart);
     if (!particle)
+      continue;
+    if (TMath::Abs(particle->Eta() > 0.8))
       continue;
     if (isphys(particle))
       Printf("its a prim!");
