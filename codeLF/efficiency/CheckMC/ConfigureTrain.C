@@ -1,6 +1,8 @@
 #include <string>
 
 #include <AliAnalysisTaskAO2Dconverter.h>
+#include <AliAnalysisTaskPIDResponse.h>
+#include <AliAnalysisTaskWeakDecayVertexer.h>
 #include <AliPhysicsSelectionTask.h>
 #include <TROOT.h>
 
@@ -12,18 +14,26 @@ void ConfigureTrain()
 
   // PhysicsSelection Configuration
   gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
-  // Use a reinterpreted cast to get the task for further configurations in this task
-  AliPhysicsSelectionTask* ps = reinterpret_cast<AliPhysicsSelectionTask*>
-      // Signature: Bool_t mCAnalysisFlag, Bool_t applyPileupCuts
-      (gROOT->ProcessLine("AddTaskPhysicsSelection(true, true)"));
+  gROOT->ProcessLine("AddTaskPhysicsSelection(kTRUE)");
 
-  gROOT->LoadMacro("TaskCheckMC.cxx+g");
-  gROOT->LoadMacro("AddTaskCheckMC.C");
-  gROOT->ProcessLine("AddTaskCheckMC(\"check\");");
+  // PID
+  gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
+  gROOT->ProcessLine("AddTaskPIDResponse()");
+
+  // Weak decays
+  gROOT->LoadMacro("$ALICE_ROOT/PWGLF/STRANGENESS/Cascades/Run2/macros/AddTaskWeakDecayVertexer.C");
+  AliAnalysisTaskWeakDecayVertexer* decays = reinterpret_cast<AliAnalysisTaskWeakDecayVertexer*> gROOT->ProcessLine("AddTaskPIDResponse()");
+  decays->SetUseImprovedFinding();
+  decays->SetupLooseVertexing();
+  decays->SetRevertexAllEvents(kTRUE);
 
   // Converter
   gROOT->LoadMacro("$ALICE_PHYSICS/RUN3/AddTaskAO2Dconverter.C");
   AliAnalysisTaskAO2Dconverter* converter = reinterpret_cast<AliAnalysisTaskAO2Dconverter*>(gROOT->ProcessLine("AddTaskAO2Dconverter()"));
   converter->SetMCMode();
   converter->SetTruncation(true);
+
+  gROOT->LoadMacro("TaskCheckMC.cxx+g");
+  gROOT->LoadMacro("AddTaskCheckMC.C");
+  gROOT->ProcessLine("AddTaskCheckMC(\"check\");");
 }
