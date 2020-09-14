@@ -32,9 +32,55 @@ TaskCheckMC::~TaskCheckMC()
 
 void TaskCheckMC::UserCreateOutputObjects() {}
 
-bool isphys(TParticle* particle, AliStack* stack)
+Bool_t IsStable(Int_t pdg)
 {
-#if 0
+  //
+  // Decide whether particle (pdg) is stable
+  //
+
+  // All ions/nucleons are considered as stable
+  // Nuclear code is 10LZZZAAAI
+  if (pdg > 1000000000)
+    return kTRUE;
+
+  const Int_t kNstable = 18;
+  Int_t i;
+
+  Int_t pdgStable[kNstable] = {
+    kGamma,      // Photon
+    kElectron,   // Electron
+    kMuonPlus,   // Muon
+    kPiPlus,     // Pion
+    kKPlus,      // Kaon
+    kK0Short,    // K0s
+    kK0Long,     // K0l
+    kProton,     // Proton
+    kNeutron,    // Neutron
+    kLambda0,    // Lambda_0
+    kSigmaMinus, // Sigma Minus
+    kSigmaPlus,  // Sigma Plus
+    3312,        // Xsi Minus
+    3322,        // Xsi
+    3334,        // Omega
+    kNuE,        // Electron Neutrino
+    kNuMu,       // Muon Neutrino
+    kNuTau       // Tau Neutrino
+  };
+
+  Bool_t isStable = kFALSE;
+  for (i = 0; i < kNstable; i++) {
+    if (pdg == TMath::Abs(pdgStable[i])) {
+      isStable = kTRUE;
+      break;
+    }
+  }
+
+  return isStable;
+}
+
+bool isphys(Int_t index, AliStack* stack)
+{
+  TParticle* p = stack->Particle(index);
   if (!p)
     return kFALSE;
   Int_t ist = p->GetStatusCode();
@@ -43,22 +89,22 @@ bool isphys(TParticle* particle, AliStack* stack)
   // Initial state particle
   // Solution for K0L decayed by Pythia6
   // ->
-  if ((ist > 1) && (pdg != 130) && index < GetNprimary())
+  if ((ist > 1) && (pdg != 130) && index < stack->GetNprimary())
     return kFALSE;
-  if ((ist > 1) && index >= GetNprimary())
+  if ((ist > 1) && index >= stack->GetNprimary())
     return kFALSE;
   // <-
 
   if (!IsStable(pdg))
     return kFALSE;
-  if (index < GetNprimary()) {
+  if (index < stack->GetNprimary()) {
     //
     // Particle produced by generator
     // Solution for K0L decayed by Pythia6
     // ->
     Int_t ipm = p->GetFirstMother();
     if (ipm > -1) {
-      TParticle* ppm = Particle(ipm, useInEmbedding);
+      TParticle* ppm = stack->Particle(ipm);
       if (TMath::Abs(ppm->GetPdgCode()) == 130)
         return kFALSE;
     }
@@ -67,7 +113,7 @@ bool isphys(TParticle* particle, AliStack* stack)
     // ->
     Int_t ipd = p->GetFirstDaughter();
     if (pdg == 22 && ipd > -1) {
-      TParticle* ppd = Particle(ipd, useInEmbedding);
+      TParticle* ppd = stack->Particle(ipd);
       if (ppd->GetPdgCode() == 22)
         return kFALSE;
     }
@@ -79,15 +125,15 @@ bool isphys(TParticle* particle, AliStack* stack)
     //
 
     Int_t imo = p->GetFirstMother();
-    TParticle* pm = Particle(imo, useInEmbedding);
+    TParticle* pm = stack->Particle(imo);
     Int_t mpdg = TMath::Abs(pm->GetPdgCode());
     // Check for Sigma0
-    if ((mpdg == 3212) && (imo < GetNprimary()))
+    if ((mpdg == 3212) && (imo < stack->GetNprimary()))
       return kTRUE;
     //
     // Check if it comes from a pi0 decay
     //
-    if ((mpdg == kPi0) && (imo < GetNprimary()))
+    if ((mpdg == kPi0) && (imo < stack->GetNprimary()))
       return kTRUE;
 
     // Check if this is a heavy flavor decay product
@@ -99,15 +145,15 @@ bool isphys(TParticle* particle, AliStack* stack)
 
     //
     // Heavy flavor hadron produced by generator
-    if (imo < GetNprimary()) {
+    if (imo < stack->GetNprimary()) {
       return kTRUE;
     }
 
     // To be sure that heavy flavor has not been produced in a secondary interaction
     // Loop back to the generated mother
-    while (imo >= GetNprimary()) {
+    while (imo >= stack->GetNprimary()) {
       imo = pm->GetFirstMother();
-      pm = Particle(imo, useInEmbedding);
+      pm = stack->Particle(imo);
     }
     mpdg = TMath::Abs(pm->GetPdgCode());
     mfl = Int_t(mpdg / TMath::Power(10, Int_t(TMath::Log10(mpdg))));
@@ -118,7 +164,6 @@ bool isphys(TParticle* particle, AliStack* stack)
       return kTRUE;
     }
   } // produced by generator ?
-#endif
   return kFALSE;
 }
 
@@ -156,8 +201,8 @@ void TaskCheckMC::UserExec(Option_t*)
       continue;
     if (TMath::Abs(particle->Eta() > 0.8))
       continue;
-    if (isphys(particle))
-      Printf("its a prim!");
+    if (isphys(ipart, mcStack))
+      myprimaryparticles++;
 
     /* check physical primary */
     if (!mcStack->IsPhysicalPrimary(ipart))
@@ -172,4 +217,5 @@ void TaskCheckMC::Terminate(Option_t*)
   // called at the END of the analysis (when all events are processed)
   Printf("Events %i", events);
   Printf("Primaries %i", primaryparticles);
+  Printf("My Primaries %i", myprimaryparticles);
 }

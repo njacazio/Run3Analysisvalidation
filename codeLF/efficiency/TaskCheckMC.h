@@ -16,7 +16,7 @@ class TaskCheckMC : public AliAnalysisTaskSE {
 
   public:
   // default constructor
-  TaskCheckMC();
+  TaskCheckMC() = default;
   // param. constructor
   TaskCheckMC(const TString partName);
   // default destructor
@@ -35,6 +35,7 @@ class TaskCheckMC : public AliAnalysisTaskSE {
 
   int events = 0;
   int primaryparticles = 0;
+  int myprimaryparticles = 0;
 
   ClassDef(TaskCheckMC, 1);
 };
