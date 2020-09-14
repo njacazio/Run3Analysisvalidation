@@ -22,7 +22,7 @@ void ConfigureTrain()
 
   // Weak decays
   gROOT->LoadMacro("$ALICE_ROOT/PWGLF/STRANGENESS/Cascades/Run2/macros/AddTaskWeakDecayVertexer.C");
-  AliAnalysisTaskWeakDecayVertexer* decays = reinterpret_cast<AliAnalysisTaskWeakDecayVertexer*> gROOT->ProcessLine("AddTaskPIDResponse()");
+  AliAnalysisTaskWeakDecayVertexer* decays = reinterpret_cast<AliAnalysisTaskWeakDecayVertexer*>(gROOT->ProcessLine("AddTaskPIDResponse()"));
   decays->SetUseImprovedFinding();
   decays->SetupLooseVertexing();
   decays->SetRevertexAllEvents(kTRUE);
