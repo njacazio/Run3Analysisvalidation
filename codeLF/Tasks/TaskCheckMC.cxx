@@ -211,15 +211,9 @@ void TaskCheckMC::UserExec(Option_t*)
   /* loop over MC stack */
 
   TParticle* particle;
-#if 0
-  for (Int_t ipart = 0; ipart < mcStack->GetNtrack(); ipart++) {
-    /* get particle */
-    particle = mcStack->Particle(ipart);
-#else
   for (Int_t ipart = 0; ipart < mcEvent->GetNumberOfTracks(); ++ipart) {
     AliVParticle* vpt = mcEvent->GetTrack(ipart);
     particle = vpt->Particle();
-#endif
     if (!particle)
       continue;
     if (TMath::Abs(particle->Eta()) > 0.8)
