@@ -12,5 +12,7 @@ o2-analysis-spectra-tpc --aod-file AO2D.root -b | o2-analysis-pid-tpc -b | o2-an
 
 #o2-analysis-pid-tpc --aod-file AO2D.root -b 
 
+mv AnalysisResults.root AnalysisResults_TPC.root
+
 rm localhost*
 

@@ -28,9 +28,7 @@ fi
 
 if [[ $DORUN3 -eq 1 ]]; then
     ./runTOFO2.sh
-    mv AnalysisResults.root AnalysisResults_TOF.root
     ./runTPCO2.sh
-    mv AnalysisResults.root AnalysisResults_TPC.root
 fi
 
 if [[ $DOCOMPARE -eq 1 ]]; then

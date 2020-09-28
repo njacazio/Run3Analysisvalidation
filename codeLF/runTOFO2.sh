@@ -4,5 +4,7 @@ reset
 
 o2-analysis-spectra-tof --aod-file AO2D.root -b | o2-analysis-pid-tof -b
 
+mv AnalysisResults.root AnalysisResults_TOF.root
+
 rm localhost*
 
