@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 
 from utils import get_obj, draw, TFile
-from ROOT import TGraphErrors, TCanvas, TF1
+from ROOT import TGraphErrors, TCanvas, TF1, TLegend
 from numpy import sqrt, power, log
 from sys import argv
 import ROOT
 from ROOT import gROOT, TColor, TObjArray
 
 gROOT.LoadMacro("BB.h+g")
-from ROOT import BB, BB2, BBReso
+from ROOT import betheblocho2
+from ROOT import BB, BB2, BBReso, O2BB, O2BBReso
+
+masses = {"El": 0.000511, "Pi": 0.139570,
+          "Ka": 0.493677, "Pr": 0.938272,
+          "De": 1.875613}
 
 
-def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272):
+def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr"):
+    mass = masses[part]
     h = get_obj(input_file,
                 "htpcsignal" + part,
                 "TPCpidqa-signalwTOF-task/")
@@ -29,11 +35,11 @@ def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272
     draw(sigma, "same")
     draw(BBReso(), "same")
 
-    g = TGraphErrors()
-    g.SetName("bg")
-    g.SetTitle(part)
-    g.GetXaxis().SetTitle("#beta#gamma")
-    g.GetYaxis().SetTitle("d#it{E}/d#it{x}")
+    g_bg = TGraphErrors()
+    g_bg.SetName("bg")
+    g_bg.SetTitle(part)
+    g_bg.GetXaxis().SetTitle("#beta#gamma")
+    g_bg.GetYaxis().SetTitle("d#it{E}/d#it{x}")
     for i in range(1, h.GetNbinsX()+1):
         x = h.GetXaxis().GetBinCenter(i)
         x /= mass
@@ -41,15 +47,16 @@ def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272
         ex /= mass
         y = profile.GetBinContent(i)
         ey = profile.GetBinError(i)
-        g.SetPoint(g.GetN(), x, y)
-        g.SetPointError(g.GetN()-1, ex, ey)
-    gcan = TCanvas("g", "g")
-    draw(g)
+        g_bg.SetPoint(g_bg.GetN(), x, y)
+        g_bg.SetPointError(g_bg.GetN()-1, ex, ey)
+    gcan = TCanvas("bg" + part, "bg" + part)
+    leg = TLegend(.7, .7, .9, .9)
+    draw(g_bg, leg=leg)
     fun = [BB(), BB2(), BB2("Unfitted")]
-    g.Fit(fun[1])
-    draw(fun[1], "same")
+    g_bg.Fit(fun[1])
+    draw(fun[1], "same", leg=leg)
     fun[2].SetLineColor(1)
-    draw(fun[2], "same")
+    draw(fun[2], "same", leg=leg)
     p = "{"
     for i in range(fun[1].GetNpar()):
         p += f"{fun[1].GetParameter(i)},"
@@ -59,7 +66,7 @@ def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272
     input()
     f = TFile(f"/tmp/bg_{part}.root", "RECREATE")
     f.cd()
-    g.Write()
+    g_bg.Write()
     bb = ROOT.o2.pid.tpc.BetheBloch()
     for i in range(0, bb.GetParameters().size()):
         bb.SetParameter(i, fun[1].GetParameter(i))
@@ -84,9 +91,8 @@ def plotbg(part="Pi Ka Pr"):
 
 if __name__ == "__main__":
     pass
-    # makeparam("Pi", 0.139570)
-    # makeparam("Ka", 0.493677)
-    makeparam(argv[1], part="Pr", mass=0.938272)
-    # makeparam(part="Pr", mass=0.938272)
-    # makeparam(part="De", mass=1.875613)
-    # c = plotbg()
+    # for i in masses:
+    #     makeparam(argv[1], i)
+    for i in ["El"]:
+        makeparam(argv[1], i)
+    # c = plotbg("Pr")

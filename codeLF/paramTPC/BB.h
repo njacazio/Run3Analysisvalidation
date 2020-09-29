@@ -28,7 +28,7 @@ Double_t BetheBlochAleph2(Double_t* x, Double_t* par)
 o2::pid::tpc::BetheBloch* betheblocho2 = nullptr;
 Double_t BetheBlochO2(Double_t* x, Double_t* par)
 {
-  const float xx[2] = { (float)x[0], 1 };
+  const float xx[2] = { (float)(x[0] * par[0]), 1 };
   return betheblocho2->operator()(xx);
 }
 
@@ -62,10 +62,14 @@ TF1* BB2(TString n = "BB2")
 
 TF1* O2BB(TString n = "O2BB")
 {
-  gSystem->Exec("o2-ccdb-downloadccdbfile -p Analysis/PID/TPC/BetheBloch -d /tmp/ -t -1");
-  TFile fin("/tmp/Analysis/PID/TPC/BetheBloch/snapshot.root", "READ");
-  fin.GetObject("ccdb_object", betheblocho2);
-  return new TF1(n, BetheBlochO2, 0, 20, 7);
+  if (!betheblocho2) {
+    gSystem->Exec("o2-ccdb-downloadccdbfile -p Analysis/PID/TPC/BetheBloch -d /tmp/ -t -1");
+    TFile fin("/tmp/Analysis/PID/TPC/BetheBloch/snapshot.root", "READ");
+    fin.GetObject("ccdb_object", betheblocho2);
+  }
+  auto f = new TF1(n, BetheBlochO2, 0, 20, 1);
+  f->SetParameter(0, 1);
+  return f;
 }
 
 Double_t BBReso(Double_t* x, Double_t* par)
@@ -93,8 +97,10 @@ TF1* BBReso(TString n = "BBReso")
 
 TF1* O2BBReso(TString n = "O2BBReso")
 {
-  gSystem->Exec("o2-ccdb-downloadccdbfile -p Analysis/PID/TPC/TPCReso -d /tmp/ -t -1");
-  TFile fin("/tmp/Analysis/PID/TPC/TPCReso/snapshot.root", "READ");
-  fin.GetObject("ccdb_object", bbresoo2);
+  if (!bbresoo2) {
+    gSystem->Exec("o2-ccdb-downloadccdbfile -p Analysis/PID/TPC/TPCReso -d /tmp/ -t -1");
+    TFile fin("/tmp/Analysis/PID/TPC/TPCReso/snapshot.root", "READ");
+    fin.GetObject("ccdb_object", bbresoo2);
+  }
   return new TF1(n, BBResoO2, 0, 20, 2);
 }

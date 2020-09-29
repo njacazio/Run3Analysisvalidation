@@ -47,6 +47,8 @@ def gettwo(run2, run3, hn, d="", V=True):
     return hr2, hr3
 
 
-def draw(obj, opt=""):
+def draw(obj, opt="", leg=None):
     obj.Draw(opt)
     gPad.Update()
+    if leg is not None:
+        leg.AddEntry(obj)
