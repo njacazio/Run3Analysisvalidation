@@ -52,7 +52,6 @@ def makeparam(part="Pr", mass=0.938272):
     p = "{"
     for i in range(fun[1].GetNpar()):
         p += f"{fun[1].GetParameter(i)},"
-        params.append(fun[1].GetParameter(i))
     p += "}"
     p = p.replace(",}", "};")
     print(f"std::vector<float> p = {p}")
