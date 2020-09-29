@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from ROOT import BB, BB2, BBReso
 from utils import get_obj, draw, TFile
 from ROOT import TGraphErrors, TCanvas, TF1
 from numpy import sqrt, power, log
@@ -8,10 +9,10 @@ import ROOT
 from ROOT import gROOT, TColor, TObjArray
 
 gROOT.LoadMacro("BB.h+g")
-from ROOT import BB, BB2, BBReso
 
-def makeparam(part="Pr", mass=0.938272):
-    h = get_obj("../AnalysisResults_TPC.root",
+
+def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272):
+    h = get_obj(input_file,
                 "htpcsignal" + part,
                 "TPCpidqa-signalwTOF-task/")
     can = TCanvas(part, part)
@@ -85,6 +86,7 @@ if __name__ == "__main__":
     pass
     # makeparam("Pi", 0.139570)
     # makeparam("Ka", 0.493677)
-    makeparam(part="Pr", mass=0.938272)
+    makeparam(argv[1], part="Pr", mass=0.938272)
+    # makeparam(part="Pr", mass=0.938272)
     # makeparam(part="De", mass=1.875613)
     # c = plotbg()
