@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from ROOT import BB, BB2, BBReso
 from utils import get_obj, draw, TFile
 from ROOT import TGraphErrors, TCanvas, TF1
 from numpy import sqrt, power, log
@@ -9,6 +8,7 @@ import ROOT
 from ROOT import gROOT, TColor, TObjArray
 
 gROOT.LoadMacro("BB.h+g")
+from ROOT import BB, BB2, BBReso
 
 
 def makeparam(input_file="../AnalysisResults_TPC.root", part="Pr", mass=0.938272):
