@@ -24,7 +24,7 @@ def get_obj(input_file, obj_name, path="", V=True):
         path += "/"
     obj = input_file.Get(f"{path}{obj_name}")
     if not obj:
-        print("Did not find", obj_name, "inside", path)
+        raise ValueError(f"Did not find{obj_name} inside {input_file.GetName()} and path '{path}'")
         return None
     if "TH" in obj.ClassName():
         obj.SetDirectory(0)
